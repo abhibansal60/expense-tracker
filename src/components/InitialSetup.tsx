@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Wallet, CheckCircle } from 'lucide-react';
@@ -14,27 +14,14 @@ export function InitialSetup({ onComplete }: InitialSetupProps) {
   const isFirstTime = useQuery(api.users.isFirstTimeUser);
   const createDefaultCategories = useMutation(api.categories.createDefaultCategories);
   
-  useEffect(() => {
-    if (isFirstTime === false) {
-      // Not a first-time user, skip setup
-      onComplete();
-      return;
-    }
-    
-    if (isFirstTime === true) {
-      // First-time user, run setup
-      runInitialSetup();
-    }
-  }, [isFirstTime]);
-  
-  const runInitialSetup = async () => {
+  const runInitialSetup = useCallback(async () => {
     try {
       setSetupStep('Creating default categories...');
       await createDefaultCategories();
-      
+
       setSetupStep('Setup complete!');
       setIsSetupComplete(true);
-      
+
       // Wait a moment to show success, then complete
       setTimeout(() => {
         onComplete();
@@ -43,7 +30,20 @@ export function InitialSetup({ onComplete }: InitialSetupProps) {
       console.error('Setup failed:', error);
       setSetupStep('Setup failed. Please refresh and try again.');
     }
-  };
+  }, [createDefaultCategories, onComplete]);
+
+  useEffect(() => {
+    if (isFirstTime === false) {
+      // Not a first-time user, skip setup
+      onComplete();
+      return;
+    }
+
+    if (isFirstTime === true) {
+      // First-time user, run setup
+      void runInitialSetup();
+    }
+  }, [isFirstTime, onComplete, runInitialSetup]);
   
   if (isFirstTime === undefined) {
     return (

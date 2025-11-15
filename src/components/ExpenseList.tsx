@@ -1,12 +1,20 @@
 import { useState } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
+import type { Id } from '../../convex/_generated/dataModel';
 import { Filter, Calendar, TrendingDown, TrendingUp } from 'lucide-react';
 
+type ExpenseFilters = {
+  category: '' | Id<'categories'>;
+  type: '' | 'income' | 'expense';
+  startDate: string;
+  endDate: string;
+};
+
 export function ExpenseList() {
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<ExpenseFilters>({
     category: '',
-    type: '' as '' | 'income' | 'expense',
+    type: '',
     startDate: '',
     endDate: '',
   });
@@ -16,7 +24,7 @@ export function ExpenseList() {
   // Fetch expenses with current filters
   const expenses = useQuery(api.expenses.getExpenses, {
     limit: 50,
-    category: filters.category ? filters.category as any : undefined,
+    category: filters.category || undefined,
     type: filters.type || undefined,
     startDate: filters.startDate || undefined,
     endDate: filters.endDate || undefined,
@@ -85,7 +93,12 @@ export function ExpenseList() {
               </label>
               <select
                 value={filters.category}
-                onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
+                onChange={(e) =>
+                  setFilters(prev => ({
+                    ...prev,
+                    category: e.target.value ? (e.target.value as Id<'categories'>) : '',
+                  }))
+                }
                 className="input-field text-sm"
               >
                 <option value="">All categories</option>
@@ -104,7 +117,12 @@ export function ExpenseList() {
               </label>
               <select
                 value={filters.type}
-                onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value as any }))}
+                onChange={(e) =>
+                  setFilters(prev => ({
+                    ...prev,
+                    type: e.target.value as ExpenseFilters['type'],
+                  }))
+                }
                 className="input-field text-sm"
               >
                 <option value="">All types</option>
