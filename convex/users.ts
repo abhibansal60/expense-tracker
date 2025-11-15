@@ -71,6 +71,36 @@ export const createOrUpdateUser = mutation({
   },
 });
 
+// Mutation to sync the authenticated user from Convex Auth
+export const syncCurrentUser = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Must be authenticated to sync user");
+    }
+
+    const existingUser = await ctx.db
+      .query("users")
+      .filter((q) => q.eq(q.field("email"), identity.email))
+      .unique();
+
+    if (existingUser) {
+      await ctx.db.patch(existingUser._id, {
+        name: identity.name ?? existingUser.name,
+        image: identity.pictureUrl ?? existingUser.image,
+      });
+      return existingUser._id;
+    }
+
+    return await ctx.db.insert("users", {
+      name: identity.name ?? "",
+      email: identity.email!,
+      image: identity.pictureUrl,
+    });
+  },
+});
+
 // Query to check if this is the user's first time (for onboarding)
 export const isFirstTimeUser = query({
   args: {},
