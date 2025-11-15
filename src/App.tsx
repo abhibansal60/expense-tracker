@@ -1,4 +1,3 @@
-import React from 'react';
 import { ConvexProvider, ConvexReactClient } from 'convex/react';
 import { ConvexAuthProvider } from '@convex-dev/auth/react';
 import { ExpenseTracker } from './components/ExpenseTracker';
@@ -10,7 +9,7 @@ const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL!);
 function App() {
   return (
     <ConvexProvider client={convex}>
-      <ConvexAuthProvider>
+      <ConvexAuthProvider client={convex}>
         <div className="min-h-screen">
           <Header />
           <main className="container" style={{ paddingTop: '32px', paddingBottom: '32px' }}>
@@ -24,4 +23,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { ExpenseForm } from './ExpenseForm';
 import { ExpenseList } from './ExpenseList';

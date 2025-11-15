@@ -1,70 +1,102 @@
-# React + TypeScript + Vite
+# Expense Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A collaborative expense tracker for couples/housemates built with React, TypeScript, Vite, and Convex. The UI focuses on quick data entry, rich filtering, and monthly summaries, while Convex handles real-time sync, authentication, and storage.
 
-Currently, two official plugins are available:
+## Why Convex is the right fit
+Convex stays in the stack because it directly solves the core product requirements:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Real-time multi-user updates** – expenses and summaries re-compute instantly without wiring up REST endpoints or WebSockets by hand.
+- **Built-in authentication** – `@convex-dev/auth` gives us Google sign-in with session management, so the frontend code only needs to wrap components with `ConvexAuthProvider`.
+- **Schema + serverless functions** – Convex’s document database and type-checked query/mutation layer keep business logic close to the data while remaining deployable without managing servers.
 
-## Expanding the ESLint configuration
+Given those benefits, removing Convex would require rebuilding auth, data access, and realtime primitives ourselves, so we keep it.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Features
+- Google-based authentication with gated routes (`AuthWrapper`).
+- Expense CRUD with categories, accounts, and type (income vs expense).
+- Filterable expense list (category, type, date range) with contextual metadata.
+- Monthly summary cards showing totals, net position, and category breakdowns.
+- Default category seeding via Convex mutations.
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tech stack
+| Layer | Tech |
+| --- | --- |
+| Frontend | React 19 + TypeScript + Vite |
+| Styling | Utility CSS (see `src/index.css`) + Lucide icons |
+| Backend | Convex (serverless database + functions) |
+| Auth | `@convex-dev/auth` with Google OAuth |
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Repository layout
+```
+.
+├── ARCHITECTURE.md        # Extended system/diagram documentation
+├── public/                # Static assets served by Vite
+├── src/
+│   ├── components/        # Auth wrapper, header, expense form/list/summary
+│   ├── index.css          # Utility classes used across the app
+│   └── main.tsx           # Vite entry point
+└── convex/
+    ├── schema.ts          # Convex data model
+    ├── auth.ts            # Google provider configuration
+    ├── categories.ts      # Category queries/mutations
+    ├── expenses.ts        # Expense queries/mutations
+    └── users.ts           # User/profile helpers
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Getting started
+1. **Install prerequisites**
+   - Node.js 20+
+   - npm 10+
+   - [Convex CLI](https://docs.convex.dev/quickstart) (`npm install -g convex` or `npx convex ...`)
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+3. **Configure environment variables**
+   Create `.env.local` (Vite automatically loads it) with:
+   ```bash
+   VITE_CONVEX_URL="https://<your-deployment>.convex.cloud"
+   ```
+   Convex itself also needs secrets in the dashboard or via `npx convex env set`:
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
+4. **Run Convex locally** (one terminal)
+   ```bash
+   npx convex dev
+   ```
+   This spins up the Convex backend and prints a dev deployment URL to use as `VITE_CONVEX_URL`.
+5. **Start Vite** (second terminal)
+   ```bash
+   npm run dev
+   ```
+6. **Seed default categories (optional but recommended)**
+   Once signed in, run the mutation so the dropdowns have sensible values:
+   ```bash
+   npx convex run categories:createDefaultCategories
+   ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Useful scripts
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start Vite in development mode (expects Convex dev running) |
+| `npm run build` | Type-check and build the production bundle |
+| `npm run preview` | Preview the built bundle |
+| `npm run lint` | Run ESLint |
+| `npx convex dev` | Run Convex backend locally |
+| `npx convex deploy` | Deploy Convex functions to the cloud |
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-# expense-tracker
+## Data model highlights
+- **users**: stored via Convex Auth; additional profile data is synced via `users.ts`.
+- **categories**: emoji/name/isDefault metadata plus creator.
+- **expenses**: amount, description, account, date, type, source metadata, and `category`/`addedBy` references.
+- **budgets** and **importJobs**: defined in `schema.ts` for future budgeting/import flows.
+
+## Onboarding & auth flow
+- `App.tsx` wires `ConvexProvider` + `ConvexAuthProvider` around the tree.
+- `AuthWrapper` reads `api.users.getCurrentUser` via `useQuery` to gate content:
+  - `undefined` → loading spinner while auth resolves
+  - `null` → Google sign-in CTA
+  - user object → renders the tracker UI
+- `ExpenseForm`/`ExpenseList` call Convex queries/mutations via the generated `api` client for real-time updates.
+
+See `ARCHITECTURE.md` for system diagrams if you need a deeper architectural reference.
