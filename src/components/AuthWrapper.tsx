@@ -1,11 +1,11 @@
-import React from 'react';
+import { type ReactNode } from 'react';
 import { useAuthActions } from '@convex-dev/auth/react';
-import { useCurrentUser } from '@convex-dev/auth/react';
-import { Authenticated, Unauthenticated } from 'convex/react';
+import { Authenticated, Unauthenticated, useQuery } from 'convex/react';
 import { LogIn, Loader2 } from 'lucide-react';
+import { api } from '../../convex/_generated/api';
 
 interface AuthWrapperProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 function SignInPage() {
@@ -61,7 +61,7 @@ function LoadingPage() {
 }
 
 export function AuthWrapper({ children }: AuthWrapperProps) {
-  const user = useCurrentUser();
+  const user = useQuery(api.users.getCurrentUser);
   
   // Show loading while authentication state is being determined
   if (user === undefined) {
@@ -73,7 +73,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
       <Unauthenticated>
         <SignInPage />
       </Unauthenticated>
-      
+
       <Authenticated>
         {children}
       </Authenticated>

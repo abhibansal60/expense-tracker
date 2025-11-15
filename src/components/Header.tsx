@@ -1,12 +1,11 @@
-import React from 'react';
-import { Wallet, Filter, Settings, User, LogOut } from 'lucide-react';
+import { Wallet, Filter, Settings, LogOut } from 'lucide-react';
 import { useAuthActions } from '@convex-dev/auth/react';
-import { useCurrentUser } from '@convex-dev/auth/react';
-import { Authenticated } from 'convex/react';
+import { Authenticated, useQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 
 export function Header() {
   const { signOut } = useAuthActions();
-  const user = useCurrentUser();
+  const user = useQuery(api.users.getCurrentUser);
 
   return (
     <header className="header">
