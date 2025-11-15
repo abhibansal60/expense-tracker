@@ -2,23 +2,34 @@ import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { X, Save } from 'lucide-react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
+import type { Id } from '../../convex/_generated/dataModel';
 
 interface ExpenseFormProps {
   onSuccess: () => void;
   onCancel: () => void;
 }
 
+type ExpenseFormState = {
+  amount: string;
+  description: string;
+  category: '' | Id<'categories'>;
+  account: 'Card' | 'Bank' | 'Cash';
+  date: string;
+  type: 'income' | 'expense';
+};
+
 export function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ExpenseFormState>({
     amount: '',
     description: '',
     category: '',
     account: 'Card',
     date: new Date().toISOString().split('T')[0],
-    type: 'expense' as 'income' | 'expense',
+    type: 'expense',
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   
   // Fetch categories for dropdown
   const categories = useQuery(api.categories.getCategories) ?? [];
@@ -28,12 +39,25 @@ export function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isSubmitting) return;
-    
+
     setIsSubmitting(true);
-    
+    setValidationError(null);
+
     try {
-      let categoryId = formData.category;
-      
+      const amountValue = Number(formData.amount);
+      if (!Number.isFinite(amountValue) || amountValue <= 0) {
+        setValidationError('Enter an amount greater than 0.');
+        return;
+      }
+
+      const trimmedDescription = formData.description.trim();
+      if (!trimmedDescription) {
+        setValidationError('Description is required.');
+        return;
+      }
+
+      let categoryId: Id<'categories'> | null = formData.category || null;
+
       // If no category selected, create a default "Other" category
       if (!categoryId) {
         const otherCategory = categories.find(c => c.name === 'Other');
@@ -47,17 +71,31 @@ export function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
           });
         }
       }
-      
+
+      if (!categoryId) {
+        setValidationError('Unable to determine a category. Please try again.');
+        return;
+      }
+
       await addExpense({
-        amount: parseFloat(formData.amount),
-        description: formData.description,
-        category: categoryId as any,
+        amount: amountValue,
+        description: trimmedDescription,
+        category: categoryId,
         account: formData.account,
         date: formData.date,
         type: formData.type,
         source: 'manual',
       });
-      
+
+      setFormData((prev) => ({
+        ...prev,
+        amount: '',
+        description: '',
+        category: '',
+        account: 'Card',
+        date: new Date().toISOString().split('T')[0],
+        type: prev.type,
+      }));
       onSuccess();
     } catch (error) {
       console.error('Failed to add expense:', error);
@@ -66,9 +104,14 @@ export function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
       setIsSubmitting(false);
     }
   };
-  
+
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    if (name === 'category') {
+      setFormData(prev => ({ ...prev, category: value as Id<'categories'> | '' }));
+      return;
+    }
+
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -87,6 +130,12 @@ export function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
+        {validationError && (
+          <div className="p-3 text-sm text-red-700 bg-red-50 rounded-lg" role="alert">
+            {validationError}
+          </div>
+        )}
+
         {/* Type Toggle */}
         <div className="flex space-x-2">
           <button
@@ -156,7 +205,6 @@ export function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
             name="category"
             value={formData.category}
             onChange={handleInputChange}
-            required
             className="input-field"
           >
             <option value="">Select a category</option>
