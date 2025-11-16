@@ -105,7 +105,7 @@ export function ExpenseTracker({
   ];
 
   return (
-    <div className="screen-stack">
+    <div className="screen-stack tracker-stack">
       <div className="view-tabs" role="tablist">
         {viewTabs.map((tab) => (
           <button
@@ -125,7 +125,7 @@ export function ExpenseTracker({
       {activeView === 'overview' && <MonthlySummary month={activeMonth} actions={monthActions} />}
 
       {activeView === 'activity' && (
-        <>
+        <div className="activity-layout">
           <section className="card quick-entry-card">
             <div>
               <p className="eyebrow">Quick entry</p>
@@ -152,7 +152,7 @@ export function ExpenseTracker({
             }}
             compactMode={preferences.compactMode}
           />
-        </>
+        </div>
       )}
 
       {activeView === 'import' && <DataBridgePanel />}

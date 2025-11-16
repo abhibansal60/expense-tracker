@@ -12,7 +12,7 @@ Convex stays in the stack because it directly solves the core product requiremen
 Given those benefits, removing Convex would require rebuilding auth, data access, and realtime primitives ourselves, so we keep it.
 
 ## Features
-- Google-based authentication with gated routes (`AuthWrapper`).
+- Google-based authentication with gated routes (`AuthWrapper`) plus an optional passphrase gate for private deployments.
 - Expense CRUD with categories, accounts, and type (income vs expense).
 - Filterable expense list (category, type, date range) with contextual metadata.
 - Monthly summary cards showing totals, net position, and category breakdowns.
@@ -56,7 +56,13 @@ Given those benefits, removing Convex would require rebuilding auth, data access
    Create `.env.local` (Vite automatically loads it) with:
    ```bash
    VITE_CONVEX_URL="https://<your-deployment>.convex.cloud"
+   VITE_ACCESS_CODE_HASH="<sha256-of-your-passphrase>"
    ```
+   Generate the hash locally so the passphrase itself never lands in source control:
+   ```bash
+   node -e "const crypto=require('crypto');console.log(crypto.createHash('sha256').update(process.argv[1]).digest('hex'))" "your shared phrase"
+   ```
+   The passphrase gate is optional - if `VITE_ACCESS_CODE_HASH` is empty the UI renders immediately.
    Convex itself also needs secrets in the dashboard or via `npx convex env set`:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
@@ -118,3 +124,13 @@ Cloudflare Pages can build the Vite site out of the box. The Convex backend rema
 - `ExpenseForm`/`ExpenseList` call Convex queries/mutations via the generated `api` client for real-time updates.
 
 See `ARCHITECTURE.md` for system diagrams if you need a deeper architectural reference.
+
+## Temporary private access gate
+Google auth stays in the codebase, but in deployments where you want to keep the tracker private without wiring OAuth, `AccessGate` renders a full-screen prompt before the Convex client mounts.
+
+1. Pick a shared passphrase with your partner.
+2. Hash it via the command shown in the *Getting started* section and set the resulting value as `VITE_ACCESS_CODE_HASH` locally and in production.
+3. When someone opens the app, `AccessGate` hashes the input with `crypto.subtle.digest`, compares it to the stored hash, and caches the positive result in `localStorage` so you only log in once per device.
+4. Clearing storage or changing the hash will force the prompt to appear again.
+
+This is intentionally lightweight security meant to discourage casual visitors until OAuth is ready. Anyone with access to the built JavaScript could eventually reverse-engineer the hash, so switch back to Google auth once you have time.

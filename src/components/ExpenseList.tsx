@@ -16,7 +16,12 @@ const SOURCE_LABELS: Record<'manual' | 'monzo' | 'import', { label: string; clas
   monzo: { label: 'Monzo CSV', className: 'source-chip source-chip--accent' },
   import: { label: 'Data bridge', className: 'source-chip source-chip--alt' },
 };
-const GBP_SYMBOL = '\u00A3';
+const currencyFormatter = new Intl.NumberFormat('en-GB', {
+  style: 'currency',
+  currency: 'GBP',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 
 interface ExpenseListProps {
   showFilters: boolean;
@@ -53,7 +58,7 @@ export function ExpenseList({ showFilters, onShowFiltersChange, compactMode }: E
   };
 
   const formatAmount = (amount: number, type: 'income' | 'expense') => {
-    const formatted = `${GBP_SYMBOL}${amount.toFixed(2)}`;
+    const formatted = currencyFormatter.format(amount);
     return type === 'income' ? `+${formatted}` : `-${formatted}`;
   };
 

@@ -3,7 +3,14 @@ import { useQuery } from 'convex/react';
 import { TrendingUp, TrendingDown, Wallet, PieChart } from 'lucide-react';
 import { api } from '../../convex/_generated/api';
 
-const GBP_SYMBOL = '\u00A3';
+const currencyFormatter = new Intl.NumberFormat('en-GB', {
+  style: 'currency',
+  currency: 'GBP',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const formatCurrency = (value: number) => currencyFormatter.format(value);
 
 interface MonthlySummaryProps {
   month: string; // Format: "2025-09"
@@ -46,10 +53,7 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
         <div className="summary-card">
           <div>
             <p>Total income</p>
-            <p className="summary-value positive">
-              {GBP_SYMBOL}
-              {summary.totalIncome.toFixed(2)}
-            </p>
+            <p className="summary-value positive">{formatCurrency(summary.totalIncome)}</p>
             <span className="summary-meta">
               {summary.incomeCount} transaction{summary.incomeCount !== 1 ? 's' : ''}
             </span>
@@ -62,10 +66,7 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
         <div className="summary-card">
           <div>
             <p>Total expenses</p>
-            <p className="summary-value negative">
-              {GBP_SYMBOL}
-              {summary.totalExpenses.toFixed(2)}
-            </p>
+            <p className="summary-value negative">{formatCurrency(summary.totalExpenses)}</p>
             <span className="summary-meta">
               {summary.expenseCount} transaction{summary.expenseCount !== 1 ? 's' : ''}
             </span>
@@ -79,8 +80,7 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
           <div>
             <p>Net position</p>
             <p className={`summary-value ${summary.netAmount >= 0 ? 'positive' : 'negative'}`}>
-              {GBP_SYMBOL}
-              {Math.abs(summary.netAmount).toFixed(2)}
+              {formatCurrency(Math.abs(summary.netAmount))}
             </p>
             <span className="summary-meta">{summary.netAmount >= 0 ? 'In surplus' : 'In deficit'}</span>
           </div>
@@ -117,8 +117,7 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
                     <div>
                       <p>{category.categoryName}</p>
                       <span>
-                        {GBP_SYMBOL}
-                        {category.amount.toFixed(2)}{' '}
+                        {formatCurrency(category.amount)}{' '}
                         {'\u00B7'} {category.count} item
                         {category.count !== 1 ? 's' : ''}
                       </span>
