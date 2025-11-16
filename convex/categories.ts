@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { ensureDemoUser } from "./guestUser";
 
 // Query to get all categories
 export const getCategories = query({
@@ -39,19 +40,7 @@ export const createCategory = mutation({
     isDefault: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Must be authenticated to create category");
-    }
-    
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .unique();
-      
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await ensureDemoUser(ctx);
     
     // Check if category already exists
     const existing = await ctx.db
@@ -79,19 +68,7 @@ export const createCategory = mutation({
 export const createDefaultCategories = mutation({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Must be authenticated to create default categories");
-    }
-    
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .unique();
-      
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await ensureDemoUser(ctx);
     
     const defaultCategories = [
       { name: "🍜 Food", emoji: "🍜" },
@@ -143,11 +120,6 @@ export const updateCategory = mutation({
     emoji: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Must be authenticated to update category");
-    }
-    
     const { id, ...updates } = args;
     await ctx.db.patch(id, updates);
     
@@ -159,11 +131,6 @@ export const updateCategory = mutation({
 export const deleteCategory = mutation({
   args: { id: v.id("categories") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Must be authenticated to delete category");
-    }
-    
     // Check if category is used by any expenses
     const expensesUsingCategory = await ctx.db
       .query("expenses")

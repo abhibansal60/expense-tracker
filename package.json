@@ -14,12 +14,14 @@
     "clsx": "^2.1.1",
     "convex": "^1.27.0",
     "lucide-react": "^0.544.0",
+    "papaparse": "^5.5.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "@types/node": "^24.3.1",
+    "@types/papaparse": "^5.5.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",

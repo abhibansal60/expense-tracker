@@ -1,5 +1,9 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { ensureDemoUser } from "./guestUser";
+import type { Id } from "./_generated/dataModel";
+
+const FALLBACK_CATEGORY = "General";
 
 // Query to get all expenses (shared between users)
 export const getExpenses = query({
@@ -106,6 +110,50 @@ export const getMonthlySummary = query({
   },
 });
 
+export const getAvailableMonths = query({
+  args: {},
+  handler: async (ctx) => {
+    const expenses = await ctx.db.query("expenses").order("desc").take(500);
+    const uniqueMonths = new Set<string>();
+
+    for (const expense of expenses) {
+      if (expense.date?.length >= 7) {
+        uniqueMonths.add(expense.date.slice(0, 7));
+      }
+    }
+
+    return Array.from(uniqueMonths).sort((a, b) => (a > b ? -1 : 1));
+  },
+});
+
+// Query to return a normalized data set ready for CSV export
+export const exportExpenses = query({
+  args: {},
+  handler: async (ctx) => {
+    const expenses = await ctx.db
+      .query("expenses")
+      .order("desc")
+      .collect();
+
+    const categories = await ctx.db.query("categories").collect();
+    const categoryMap = new Map(categories.map((category) => [category._id, category.name]));
+
+    return expenses.map((expense) => ({
+      id: expense._id,
+      date: expense.date,
+      description: expense.description,
+      amount: expense.amount,
+      type: expense.type,
+      account: expense.account,
+      categoryName: categoryMap.get(expense.category) ?? FALLBACK_CATEGORY,
+      source: expense.source ?? "manual",
+      monzoTransactionId: expense.monzoTransactionId,
+      merchant: expense.merchant,
+      originalCategory: expense.originalCategory,
+    }));
+  },
+});
+
 // Mutation to add a new expense
 export const addExpense = mutation({
   args: {
@@ -122,19 +170,7 @@ export const addExpense = mutation({
     originalCategory: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Must be authenticated to add expense");
-    }
-    
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .unique();
-      
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await ensureDemoUser(ctx);
     
     const expenseId = await ctx.db.insert("expenses", {
       amount: args.amount,
@@ -156,6 +192,134 @@ export const addExpense = mutation({
   },
 });
 
+// Mutation to bulk-import normalized expenses created on the client
+export const importExpenses = mutation({
+  args: {
+    source: v.union(v.literal("monzo"), v.literal("money_manager")),
+    entries: v.array(
+      v.object({
+        amount: v.number(),
+        description: v.string(),
+        categoryName: v.string(),
+        account: v.string(),
+        date: v.string(),
+        type: v.union(v.literal("income"), v.literal("expense")),
+        monzoTransactionId: v.optional(v.string()),
+        merchant: v.optional(v.string()),
+        originalCategory: v.optional(v.string()),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const user = await ensureDemoUser(ctx);
+
+    if (args.entries.length === 0) {
+      return {
+        inserted: 0,
+        skipped: 0,
+        failed: 0,
+        total: 0,
+        errors: [] as { row: number; reason: string }[],
+      };
+    }
+
+    const categoriesByName = new Map<string, Id<"categories">>();
+    const errors: { row: number; reason: string }[] = [];
+    let inserted = 0;
+    let skipped = 0;
+
+    const ensureCategoryId = async (rawName: string) => {
+      const normalizedName = rawName?.trim() ? rawName.trim() : FALLBACK_CATEGORY;
+      const cacheKey = normalizedName.toLowerCase();
+
+      if (categoriesByName.has(cacheKey)) {
+        return categoriesByName.get(cacheKey)!;
+      }
+
+      const existing = await ctx.db
+        .query("categories")
+        .withIndex("by_name", (q) => q.eq("name", normalizedName))
+        .unique();
+
+      if (existing) {
+        categoriesByName.set(cacheKey, existing._id);
+        return existing._id;
+      }
+
+      const created = await ctx.db.insert("categories", {
+        name: normalizedName,
+        emoji: undefined,
+        isDefault: false,
+        createdBy: user._id,
+        createdAt: Date.now(),
+      });
+
+      categoriesByName.set(cacheKey, created);
+      return created;
+    };
+
+    for (const [index, entry] of args.entries.entries()) {
+      const rowNumber = index + 1;
+      try {
+        if (!Number.isFinite(entry.amount) || entry.amount <= 0) {
+          errors.push({ row: rowNumber, reason: "Amount must be greater than 0" });
+          continue;
+        }
+
+        const description = entry.description.trim();
+        if (!description) {
+          errors.push({ row: rowNumber, reason: "Description is required" });
+          continue;
+        }
+
+        if (entry.monzoTransactionId) {
+          const duplicate = await ctx.db
+            .query("expenses")
+            .withIndex("by_monzo_id", (q) =>
+              q.eq("monzoTransactionId", entry.monzoTransactionId!)
+            )
+            .unique();
+
+          if (duplicate) {
+            skipped += 1;
+            continue;
+          }
+        }
+
+        const categoryId = await ensureCategoryId(entry.categoryName);
+
+        await ctx.db.insert("expenses", {
+          amount: entry.amount,
+          description,
+          category: categoryId,
+          account: entry.account || "Card",
+          date: entry.date,
+          type: entry.type,
+          source: args.source === "monzo" ? "monzo" : "import",
+          addedBy: user._id,
+          createdAt: Date.now(),
+          monzoTransactionId: entry.monzoTransactionId,
+          merchant: entry.merchant,
+          originalCategory: entry.originalCategory,
+        });
+
+        inserted += 1;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown import failure";
+        errors.push({ row: rowNumber, reason: message });
+      }
+    }
+
+    return {
+      inserted,
+      skipped,
+      failed: errors.length,
+      total: args.entries.length,
+      errors,
+    };
+  },
+});
+
 // Mutation to update an expense
 export const updateExpense = mutation({
   args: {
@@ -168,11 +332,7 @@ export const updateExpense = mutation({
     type: v.optional(v.union(v.literal("income"), v.literal("expense"))),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Must be authenticated to update expense");
-    }
-    
+    await ensureDemoUser(ctx);
     const { id, ...updates } = args;
     await ctx.db.patch(id, updates);
     
@@ -184,11 +344,7 @@ export const updateExpense = mutation({
 export const deleteExpense = mutation({
   args: { id: v.id("expenses") },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Must be authenticated to delete expense");
-    }
-    
+    await ensureDemoUser(ctx);
     await ctx.db.delete(args.id);
     return true;
   },

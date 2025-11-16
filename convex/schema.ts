@@ -50,7 +50,8 @@ export default defineSchema({
     .index("by_category", ["category"])
     .index("by_user", ["addedBy"])
     .index("by_type", ["type"])
-    .index("by_source", ["source"]),
+    .index("by_source", ["source"])
+    .index("by_monzo_id", ["monzoTransactionId"]),
 
   // Monthly budgets for categories
   budgets: defineTable({

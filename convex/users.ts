@@ -1,21 +1,12 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { ensureDemoUser, getDemoUser } from "./guestUser";
 
 // Query to get current user info
 export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return null;
-    }
-    
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .unique();
-    
-    return user;
+    return await getDemoUser(ctx);
   },
 });
 
@@ -23,11 +14,6 @@ export const getCurrentUser = query({
 export const getUsers = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Must be authenticated to view users");
-    }
-    
     return await ctx.db.query("users").collect();
   },
 });
@@ -40,11 +26,6 @@ export const createOrUpdateUser = mutation({
     image: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Must be authenticated to create user");
-    }
-    
     // Check if user already exists
     const existingUser = await ctx.db
       .query("users")
@@ -75,29 +56,8 @@ export const createOrUpdateUser = mutation({
 export const syncCurrentUser = mutation({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Must be authenticated to sync user");
-    }
-
-    const existingUser = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .unique();
-
-    if (existingUser) {
-      await ctx.db.patch(existingUser._id, {
-        name: identity.name ?? existingUser.name,
-        image: identity.pictureUrl ?? existingUser.image,
-      });
-      return existingUser._id;
-    }
-
-    return await ctx.db.insert("users", {
-      name: identity.name ?? "",
-      email: identity.email!,
-      image: identity.pictureUrl,
-    });
+    const user = await ensureDemoUser(ctx);
+    return user._id;
   },
 });
 
@@ -105,15 +65,7 @@ export const syncCurrentUser = mutation({
 export const isFirstTimeUser = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return false;
-    }
-    
-    const user = await ctx.db
-      .query("users")
-      .filter((q) => q.eq(q.field("email"), identity.email))
-      .unique();
+    const user = await getDemoUser(ctx);
     
     if (!user) return true;
     

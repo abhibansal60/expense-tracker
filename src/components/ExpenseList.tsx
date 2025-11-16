@@ -11,27 +11,37 @@ type ExpenseFilters = {
   endDate: string;
 };
 
-export function ExpenseList() {
+const SOURCE_LABELS: Record<'manual' | 'monzo' | 'import', { label: string; className: string }> = {
+  manual: { label: 'Manual', className: 'source-badge source-badge--manual' },
+  monzo: { label: 'Monzo CSV', className: 'source-badge source-badge--monzo' },
+  import: { label: 'CSV import', className: 'source-badge source-badge--import' },
+};
+
+interface ExpenseListProps {
+  showFilters: boolean;
+  onShowFiltersChange: (value: boolean) => void;
+  compactMode?: boolean;
+}
+
+export function ExpenseList({ showFilters, onShowFiltersChange, compactMode }: ExpenseListProps) {
   const [filters, setFilters] = useState<ExpenseFilters>({
     category: '',
     type: '',
     startDate: '',
     endDate: '',
   });
-  
-  const [showFilters, setShowFilters] = useState(false);
-  
-  // Fetch expenses with current filters
-  const expenses = useQuery(api.expenses.getExpenses, {
-    limit: 50,
-    category: filters.category || undefined,
-    type: filters.type || undefined,
-    startDate: filters.startDate || undefined,
-    endDate: filters.endDate || undefined,
-  }) ?? [];
-  
+
+  const expenses =
+    useQuery(api.expenses.getExpenses, {
+      limit: 50,
+      category: filters.category || undefined,
+      type: filters.type || undefined,
+      startDate: filters.startDate || undefined,
+      endDate: filters.endDate || undefined,
+    }) ?? [];
+
   const categories = useQuery(api.categories.getCategories) ?? [];
-  
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-GB', {
@@ -40,12 +50,12 @@ export function ExpenseList() {
       year: 'numeric',
     });
   };
-  
+
   const formatAmount = (amount: number, type: 'income' | 'expense') => {
     const formatted = `£${amount.toFixed(2)}`;
     return type === 'income' ? `+${formatted}` : `-${formatted}`;
   };
-  
+
   const resetFilters = () => {
     setFilters({
       category: '',
@@ -55,46 +65,44 @@ export function ExpenseList() {
     });
   };
 
-  const getTypeIcon = (type: 'income' | 'expense') => {
-    return type === 'income' ? (
-      <TrendingUp className="h-4 w-4 text-green-600" />
-    ) : (
-      <TrendingDown className="h-4 w-4 text-red-600" />
+  const renderTypeIcon = (type: 'income' | 'expense') => {
+    const icon =
+      type === 'income' ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />;
+
+    return (
+      <div className={`expense-indicator ${type === 'income' ? 'income' : 'expense'}`}>
+        {icon}
+      </div>
     );
   };
 
+  const getSourceMeta = (source?: 'manual' | 'monzo' | 'import') => {
+    if (!source) return SOURCE_LABELS.manual;
+    return SOURCE_LABELS[source];
+  };
+
   return (
-    <div className="card">
-      {/* Header with Filters */}
+    <div className="card list-card">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Expenses ({expenses.length})
-        </h3>
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className={`p-2 rounded-lg transition-colors ${
-            showFilters || Object.values(filters).some(Boolean)
-              ? 'bg-primary-100 text-primary-700'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-          }`}
-        >
-          <Filter className="h-5 w-5" />
+        <div>
+          <p className="eyebrow">Recent activity</p>
+          <h3 className="panel-title">Expense timeline ({expenses.length})</h3>
+        </div>
+        <button className="btn-soft" onClick={() => onShowFiltersChange(!showFilters)}>
+          <Filter className="h-4 w-4" />
+          {showFilters ? 'Hide filters' : 'Filters'}
         </button>
       </div>
-      
-      {/* Filter Panel */}
+
       {showFilters && (
-        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <div className="filter-panel mb-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Category Filter */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Category
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
               <select
                 value={filters.category}
                 onChange={(e) =>
-                  setFilters(prev => ({
+                  setFilters((prev) => ({
                     ...prev,
                     category: e.target.value ? (e.target.value as Id<'categories'>) : '',
                   }))
@@ -104,21 +112,19 @@ export function ExpenseList() {
                 <option value="">All categories</option>
                 {categories.map((category) => (
                   <option key={category._id} value={category._id}>
-                    {category.emoji ? `${category.emoji} ` : ''}{category.name}
+                    {category.emoji ? `${category.emoji} ` : ''}
+                    {category.name}
                   </option>
                 ))}
               </select>
             </div>
-            
-            {/* Type Filter */}
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Type
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
               <select
                 value={filters.type}
                 onChange={(e) =>
-                  setFilters(prev => ({
+                  setFilters((prev) => ({
                     ...prev,
                     type: e.target.value as ExpenseFilters['type'],
                   }))
@@ -130,47 +136,37 @@ export function ExpenseList() {
                 <option value="income">Income</option>
               </select>
             </div>
-            
-            {/* Date Range */}
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                From Date
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
               <input
                 type="date"
                 value={filters.startDate}
-                onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                onChange={(e) => setFilters((prev) => ({ ...prev, startDate: e.target.value }))}
                 className="input-field text-sm"
               />
             </div>
-            
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                To Date
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
               <input
                 type="date"
                 value={filters.endDate}
-                onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                onChange={(e) => setFilters((prev) => ({ ...prev, endDate: e.target.value }))}
                 className="input-field text-sm"
               />
             </div>
           </div>
-          
-          {/* Filter Actions */}
+
           <div className="flex justify-end mt-4">
-            <button
-              onClick={resetFilters}
-              className="btn-secondary text-sm"
-            >
+            <button onClick={resetFilters} className="btn-secondary text-sm">
               Reset Filters
             </button>
           </div>
         </div>
       )}
-      
-      {/* Expense List */}
-      <div className="space-y-0 max-h-96 overflow-y-auto">
+
+      <div className={`space-y-0 max-h-96 overflow-y-auto ${compactMode ? 'compact-list' : ''}`}>
         {expenses.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
@@ -178,48 +174,46 @@ export function ExpenseList() {
             <p className="text-sm">Add your first expense to get started</p>
           </div>
         ) : (
-          expenses.map((expense) => (
-            <div key={expense._id} className="expense-item">
-              <div className="flex items-center space-x-4">
-                {/* Type Icon */}
-                <div className="flex-shrink-0">
-                  {getTypeIcon(expense.type)}
-                </div>
-                
-                {/* Expense Details */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {expense.description}
-                    </p>
-                    <p className={`text-sm font-semibold ${
-                      expense.type === 'income' ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {formatAmount(expense.amount, expense.type)}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center justify-between mt-1">
-                    <div className="flex items-center space-x-2 text-xs text-gray-500">
-                      <span>
-                        {expense.categoryDetails?.emoji} {expense.categoryDetails?.name}
-                      </span>
-                      <span>•</span>
-                      <span>{expense.account}</span>
-                      <span>•</span>
-                      <span>{formatDate(expense.date)}</span>
+          expenses.map((expense) => {
+            const sourceMeta = getSourceMeta(expense.source as 'manual' | 'monzo' | 'import');
+            return (
+              <div key={expense._id} className="expense-item">
+                <div className="flex items-start gap-4">
+                  {renderTypeIcon(expense.type)}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 truncate">{expense.description}</p>
+                        <div className="expense-meta mt-1">
+                          <span>
+                            {expense.categoryDetails?.emoji} {expense.categoryDetails?.name}
+                          </span>
+                          <span>{expense.account}</span>
+                          <span>{formatDate(expense.date)}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className={`text-sm font-bold ${
+                            expense.type === 'income' ? 'text-green-600' : 'text-red-600'
+                          }`}
+                        >
+                          {formatAmount(expense.amount, expense.type)}
+                        </p>
+                        <div className="expense-meta justify-end">
+                          <span>by {expense.userDetails?.name?.split(' ')[0] || 'Unknown'}</span>
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div className="flex items-center space-x-1">
-                      <span className="text-xs text-gray-400">
-                        by {expense.userDetails?.name?.split(' ')[0] || 'Unknown'}
-                      </span>
+                    <div className="expense-meta mt-2">
+                      <span className={sourceMeta.className}>{sourceMeta.label}</span>
+                      {expense.merchant && <span>{expense.merchant}</span>}
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>
