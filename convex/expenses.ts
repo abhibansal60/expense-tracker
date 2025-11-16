@@ -5,6 +5,29 @@ import type { Id } from "./_generated/dataModel";
 
 const FALLBACK_CATEGORY = "General";
 
+type DedupeInput = {
+  amount: number;
+  description: string;
+  account: string;
+  date: string;
+  type: "income" | "expense";
+};
+
+const buildExpenseDedupeKey = ({
+  amount,
+  description,
+  account,
+  date,
+  type,
+}: DedupeInput) => {
+  const normalizedDescription = description.trim().replace(/\s+/g, " ").toLowerCase();
+  const normalizedAccount = account.trim().replace(/\s+/g, " ").toLowerCase();
+  const normalizedDate = date.trim();
+  const normalizedType = type;
+  const normalizedAmount = amount.toFixed(2);
+  return `${normalizedDate}::${normalizedAmount}::${normalizedType}::${normalizedAccount}::${normalizedDescription}`;
+};
+
 // Query to get all expenses (shared between users)
 export const getExpenses = query({
   args: {
@@ -172,7 +195,15 @@ export const addExpense = mutation({
   },
   handler: async (ctx, args) => {
     const user = await ensureHouseholdUser(ctx, args.memberId);
-    const { memberId, ...rest } = args;
+    const { memberId: _memberId, ...rest } = args;
+    void _memberId;
+    const dedupeKey = buildExpenseDedupeKey({
+      amount: rest.amount,
+      description: rest.description,
+      account: rest.account,
+      date: rest.date,
+      type: rest.type,
+    });
     const expenseId = await ctx.db.insert("expenses", {
       amount: rest.amount,
       description: rest.description,
@@ -183,6 +214,7 @@ export const addExpense = mutation({
       source: rest.source ?? "manual",
       addedBy: user._id,
       createdAt: Date.now(),
+      dedupeKey,
       monzoTransactionId: rest.monzoTransactionId,
       merchant: rest.merchant,
       address: rest.address,
@@ -208,6 +240,7 @@ export const importExpenses = mutation({
         monzoTransactionId: v.optional(v.string()),
         merchant: v.optional(v.string()),
         originalCategory: v.optional(v.string()),
+        memberId: v.optional(v.string()),
       })
     ),
     memberId: v.string(),
@@ -275,6 +308,14 @@ export const importExpenses = mutation({
           continue;
         }
 
+        const dedupeKey = buildExpenseDedupeKey({
+          amount: entry.amount,
+          description,
+          account: entry.account || "Card",
+          date: entry.date,
+          type: entry.type,
+        });
+
         if (entry.monzoTransactionId) {
           const duplicate = await ctx.db
             .query("expenses")
@@ -284,6 +325,18 @@ export const importExpenses = mutation({
             .unique();
 
           if (duplicate) {
+            skipped += 1;
+            continue;
+          }
+        }
+
+        if (dedupeKey) {
+          const duplicateByKey = await ctx.db
+            .query("expenses")
+            .withIndex("by_dedupe_key", (q) => q.eq("dedupeKey", dedupeKey))
+            .unique();
+
+          if (duplicateByKey) {
             skipped += 1;
             continue;
           }
@@ -301,6 +354,7 @@ export const importExpenses = mutation({
           source: args.source === "monzo" ? "monzo" : "import",
           addedBy: user._id,
           createdAt: Date.now(),
+          dedupeKey,
           monzoTransactionId: entry.monzoTransactionId,
           merchant: entry.merchant,
           originalCategory: entry.originalCategory,
@@ -337,8 +391,20 @@ export const updateExpense = mutation({
   },
   handler: async (ctx, args) => {
     await ensureHouseholdUser(ctx, args.memberId);
-    const { id, memberId, ...updates } = args;
-    await ctx.db.patch(id, updates);
+    const { id, memberId: _memberId, ...updates } = args;
+    void _memberId;
+    const existing = await ctx.db.get(id);
+    if (!existing) {
+      throw new Error("Expense not found");
+    }
+    const dedupeKey = buildExpenseDedupeKey({
+      amount: updates.amount ?? existing.amount,
+      description: updates.description ?? existing.description,
+      account: updates.account ?? existing.account,
+      date: updates.date ?? existing.date,
+      type: updates.type ?? existing.type,
+    });
+    await ctx.db.patch(id, { ...updates, dedupeKey });
     
     return id;
   },

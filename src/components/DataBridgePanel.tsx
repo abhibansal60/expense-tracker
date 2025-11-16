@@ -120,11 +120,12 @@ export function DataBridgePanel() {
       if (parsed.entries.length === 0) {
         throw new Error('No rows detected in the CSV file.');
       }
+      const sanitizedEntries = parsed.entries.map(normalizeImportEntry);
 
       setImportStatus('uploading');
       const response = (await runImport({
         source: parsed.source,
-        entries: parsed.entries,
+        entries: sanitizedEntries,
         memberId: user.id,
       })) as ImportResponse;
 
@@ -289,6 +290,21 @@ function parseCsv(csvText: string): ParsedCsvResult {
   }
 
   throw new Error('Unrecognized CSV structure. Please upload a Monzo or Money Manager export.');
+}
+
+function normalizeImportEntry(entry: NormalizedImportEntry): NormalizedImportEntry {
+  // Enforce an exact payload shape so stray CSV columns (e.g. a Member ID) never reach Convex
+  return {
+    amount: entry.amount,
+    description: entry.description,
+    categoryName: entry.categoryName,
+    account: entry.account,
+    date: entry.date,
+    type: entry.type,
+    monzoTransactionId: entry.monzoTransactionId ?? undefined,
+    merchant: entry.merchant ?? undefined,
+    originalCategory: entry.originalCategory ?? undefined,
+  };
 }
 
 function transformLegacyRows(rows: Record<string, string>[]): NormalizedImportEntry[] {

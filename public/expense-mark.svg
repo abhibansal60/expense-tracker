@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Expense Tracker mark">
+  <defs>
+    <linearGradient id="walletGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+    <linearGradient id="coinGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#facc15" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+  </defs>
+  <rect width="48" height="32" x="8" y="20" rx="8" fill="url(#walletGradient)" />
+  <rect width="40" height="24" x="12" y="24" rx="6" fill="#fff" fill-opacity="0.08" />
+  <circle cx="44" cy="22" r="10" fill="url(#coinGradient)" stroke="#f59e0b" stroke-width="2" />
+  <path d="M40 22h8" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" />
+  <circle cx="24" cy="36" r="5" fill="#38bdf8" />
+  <path d="M18 42c2.5-3 6.5-4.5 10.5-4.5S36 39 38 42" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" fill="none" />
+</svg>

@@ -42,7 +42,8 @@ export const createCategory = mutation({
   },
   handler: async (ctx, args) => {
     const user = await ensureHouseholdUser(ctx, args.memberId);
-    const { memberId, ...fields } = args;
+    const { memberId: _memberId, ...fields } = args;
+    void _memberId;
     
     // Check if category already exists
     const existing = await ctx.db

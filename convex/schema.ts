@@ -39,6 +39,7 @@ export default defineSchema({
     source: v.union(v.literal("manual"), v.literal("monzo"), v.literal("import")),
     addedBy: v.id("users"),
     createdAt: v.number(),
+    dedupeKey: v.optional(v.string()),
     
     // Optional Monzo metadata
     monzoTransactionId: v.optional(v.string()),
@@ -51,7 +52,8 @@ export default defineSchema({
     .index("by_user", ["addedBy"])
     .index("by_type", ["type"])
     .index("by_source", ["source"])
-    .index("by_monzo_id", ["monzoTransactionId"]),
+    .index("by_monzo_id", ["monzoTransactionId"])
+    .index("by_dedupe_key", ["dedupeKey"]),
 
   // Monthly budgets for categories
   budgets: defineTable({
