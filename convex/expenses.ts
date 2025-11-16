@@ -3,7 +3,7 @@ import type { QueryCtx } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { ensureHouseholdUser } from "./householdUser";
-import type { Doc, Id } from "./_generated/dataModel";
+import type { Doc, Id, TableNames } from "./_generated/dataModel";
 
 const FALLBACK_CATEGORY = "General";
 
@@ -102,7 +102,7 @@ export const getMonthlySummary = query({
     const accountTotals = new Map<string, number>();
 
     for (const expense of expenses.filter(e => e.type === "expense")) {
-      const category = await ctx.db.get(expense.category);
+      const category = await safeGetDocument(ctx, "categories", expense.category);
       const categoryName = category?.name ?? "Unknown";
       const current = categoryTotals.get(expense.category) ?? { amount: 0, count: 0, categoryName };
       categoryTotals.set(expense.category, {
@@ -486,8 +486,8 @@ function buildFilteredExpenseQuery(ctx: QueryCtx, filters: ExpenseFiltersInput) 
 async function hydrateExpenses(ctx: QueryCtx, expenses: Array<Doc<"expenses">>) {
   return Promise.all(
     expenses.map(async (expense) => {
-      const category = await ctx.db.get(expense.category);
-      const user = await ctx.db.get(expense.addedBy);
+      const category = await safeGetDocument(ctx, "categories", expense.category);
+      const user = await safeGetDocument(ctx, "users", expense.addedBy);
       return {
         ...expense,
         categoryDetails: category,
@@ -495,6 +495,23 @@ async function hydrateExpenses(ctx: QueryCtx, expenses: Array<Doc<"expenses">>) 
       };
     })
   );
+}
+
+async function safeGetDocument<TableName extends TableNames>(
+  ctx: QueryCtx,
+  tableName: TableName,
+  id?: Id<TableName> | null
+): Promise<Doc<TableName> | null> {
+  if (!id) {
+    return null;
+  }
+
+  try {
+    return await ctx.db.get(id);
+  } catch (error) {
+    console.error(`Failed to hydrate ${tableName} ${id}`, error);
+    return null;
+  }
 }
 
 function normalizeLegacyLimit(input?: number) {
