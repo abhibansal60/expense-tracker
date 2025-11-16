@@ -40,7 +40,8 @@ export default defineSchema({
     addedBy: v.id("users"),
     createdAt: v.number(),
     dedupeKey: v.optional(v.string()),
-    
+    recurringEntry: v.optional(v.id("recurringEntries")),
+
     // Optional Monzo metadata
     monzoTransactionId: v.optional(v.string()),
     merchant: v.optional(v.string()),
@@ -82,4 +83,18 @@ export default defineSchema({
   })
     .index("by_user", ["startedBy"])
     .index("by_status", ["status"]),
+
+  recurringEntries: defineTable({
+    amount: v.number(),
+    description: v.string(),
+    category: v.id("categories"),
+    account: v.string(),
+    type: v.union(v.literal("income"), v.literal("expense")),
+    dayOfMonth: v.number(),
+    startMonth: v.string(),
+    endMonth: v.optional(v.string()),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+  })
+    .index("by_creator", ["createdBy"]),
 });

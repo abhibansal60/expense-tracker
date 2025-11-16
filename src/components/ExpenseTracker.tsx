@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
-import { useQuery } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ExpenseForm } from './ExpenseForm';
 import { ExpenseList } from './ExpenseList';
 import { MonthlySummary } from './MonthlySummary';
 import { DataBridgePanel } from './DataBridgePanel';
 import { api } from '../../convex/_generated/api';
+import { RecurringForm } from './RecurringForm';
+import { RecurringList } from './RecurringList';
+import { useHouseholdUser } from './HouseholdUserGate';
 
 const getCurrentMonth = () => {
   const now = new Date();
@@ -33,9 +36,11 @@ export function ExpenseTracker({
   activeView,
   onChangeView,
 }: ExpenseTrackerProps) {
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [activeSheet, setActiveSheet] = useState<'expense' | 'recurring' | null>(null);
   const [selectedMonth, setSelectedMonth] = useState('');
   const availableMonths = useQuery(api.expenses.getAvailableMonths) ?? [];
+  const { user } = useHouseholdUser();
+  const processRecurring = useMutation(api.recurring.processRecurringEntries);
 
   useEffect(() => {
     if (!selectedMonth && availableMonths.length > 0) {
@@ -47,6 +52,15 @@ export function ExpenseTracker({
   const monthOptions = availableMonths.length > 0 ? availableMonths : [fallbackMonth];
   const activeMonth = monthOptions.includes(selectedMonth) ? selectedMonth : monthOptions[0];
   const currentIndex = monthOptions.findIndex((value) => value === activeMonth);
+
+  useEffect(() => {
+    if (!activeMonth) {
+      return;
+    }
+    processRecurring({ month: activeMonth, memberId: user.id }).catch((error) => {
+      console.error('Failed to sync recurring entries', error);
+    });
+  }, [activeMonth, processRecurring, user.id]);
 
   const goToOlderMonth = () => {
     if (currentIndex < monthOptions.length - 1) {
@@ -126,22 +140,29 @@ export function ExpenseTracker({
 
       {activeView === 'activity' && (
         <div className="activity-layout">
-          <section className="card quick-entry-card">
-            <div>
-              <p className="eyebrow">Quick entry</p>
-              <h2 className="panel-title">Add a manual expense</h2>
-              <p className="panel-subtitle">Tap below or use the floating button to launch the form.</p>
-            </div>
-            <div className="quick-entry-actions">
-              <button onClick={() => setShowAddForm(true)} className="btn-primary">
-                <Plus className="h-4 w-4" />
-                <span>Add expense</span>
-              </button>
-              <button onClick={onToggleFilters} className="btn-secondary">
-                {showFilters ? 'Hide filters' : 'Show filters'}
-              </button>
-            </div>
-          </section>
+          <div className="activity-stack">
+            <section className="card quick-entry-card">
+              <div>
+                <p className="eyebrow">Quick entry</p>
+                <h2 className="panel-title">Add a manual expense</h2>
+                <p className="panel-subtitle">Tap below or use the floating button to launch the form.</p>
+              </div>
+              <div className="quick-entry-actions">
+                <button onClick={() => setActiveSheet('expense')} className="btn-primary">
+                  <Plus className="h-4 w-4" />
+                  <span>Add expense</span>
+                </button>
+                <button onClick={() => setActiveSheet('recurring')} className="btn-secondary">
+                  Schedule recurring
+                </button>
+                <button onClick={onToggleFilters} className="btn-secondary">
+                  {showFilters ? 'Hide filters' : 'Show filters'}
+                </button>
+              </div>
+            </section>
+
+            <RecurringList />
+          </div>
 
           <ExpenseList
             showFilters={showFilters}
@@ -157,10 +178,14 @@ export function ExpenseTracker({
 
       {activeView === 'import' && <DataBridgePanel />}
 
-      {showAddForm && (
+      {activeSheet && (
         <div className="sheet-overlay" role="dialog" aria-modal="true">
           <div className="sheet-panel">
-            <ExpenseForm onSuccess={() => setShowAddForm(false)} onCancel={() => setShowAddForm(false)} />
+            {activeSheet === 'expense' ? (
+              <ExpenseForm onSuccess={() => setActiveSheet(null)} onCancel={() => setActiveSheet(null)} />
+            ) : (
+              <RecurringForm onSuccess={() => setActiveSheet(null)} onCancel={() => setActiveSheet(null)} />
+            )}
           </div>
         </div>
       )}
@@ -168,8 +193,8 @@ export function ExpenseTracker({
       {activeView === 'activity' && (
         <button
           type="button"
-          className={`fab ${showAddForm ? 'fab--hidden' : ''}`}
-          onClick={() => setShowAddForm(true)}
+          className={`fab ${activeSheet === 'expense' ? 'fab--hidden' : ''}`}
+          onClick={() => setActiveSheet('expense')}
           aria-label="Add expense"
         >
           <Plus className="h-5 w-5" />
