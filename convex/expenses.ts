@@ -13,7 +13,7 @@ type DedupeInput = {
   type: "income" | "expense";
 };
 
-const buildExpenseDedupeKey = ({
+export const buildExpenseDedupeKey = ({
   amount,
   description,
   account,
@@ -86,7 +86,7 @@ export const getMonthlySummary = query({
   handler: async (ctx, args) => {
     const startDate = `${args.month}-01`;
     const endDate = `${args.month}-31`;
-    
+
     const expenses = await ctx.db
       .query("expenses")
       .filter((q) => 
@@ -96,18 +96,20 @@ export const getMonthlySummary = query({
         )
       )
       .collect();
-    
+
     const totalIncome = expenses
       .filter(e => e.type === "income")
       .reduce((sum, e) => sum + e.amount, 0);
-      
+
     const totalExpenses = expenses
       .filter(e => e.type === "expense")
       .reduce((sum, e) => sum + e.amount, 0);
-    
+
     // Group by category
     const categoryTotals = new Map<string, { amount: number; count: number; categoryName: string }>();
-    
+    const dayTotals = new Map<string, { income: number; expense: number }>();
+    const accountTotals = new Map<string, number>();
+
     for (const expense of expenses.filter(e => e.type === "expense")) {
       const category = await ctx.db.get(expense.category);
       const categoryName = category?.name ?? "Unknown";
@@ -117,8 +119,32 @@ export const getMonthlySummary = query({
         count: current.count + 1,
         categoryName,
       });
+
+      const accountAmount = accountTotals.get(expense.account) ?? 0;
+      accountTotals.set(expense.account, accountAmount + expense.amount);
     }
-    
+
+    for (const entry of expenses) {
+      const key = entry.date;
+      const totals = dayTotals.get(key) ?? { income: 0, expense: 0 };
+      const bucket = entry.type === "income" ? "income" : "expense";
+      totals[bucket] += entry.amount;
+      dayTotals.set(key, totals);
+    }
+
+    const daysInMonth = getDaysInMonth(args.month);
+    const dailySeries = Array.from({ length: daysInMonth }, (_, index) => {
+      const day = index + 1;
+      const dateLabel = `${args.month}-${String(day).padStart(2, "0")}`;
+      const totals = dayTotals.get(dateLabel) ?? { income: 0, expense: 0 };
+      return {
+        date: dateLabel,
+        income: totals.income,
+        expense: totals.expense,
+        dayLabel: String(day),
+      };
+    });
+
     return {
       totalIncome,
       totalExpenses,
@@ -128,6 +154,11 @@ export const getMonthlySummary = query({
       categoryBreakdown: Array.from(categoryTotals.entries()).map(([categoryId, data]) => ({
         categoryId,
         ...data,
+      })),
+      dailySeries,
+      accountBreakdown: Array.from(accountTotals.entries()).map(([account, amount]) => ({
+        account,
+        amount,
       })),
     };
   },
@@ -192,6 +223,7 @@ export const addExpense = mutation({
     address: v.optional(v.string()),
     originalCategory: v.optional(v.string()),
     memberId: v.string(),
+    recurringEntry: v.optional(v.id("recurringEntries")),
   },
   handler: async (ctx, args) => {
     const user = await ensureHouseholdUser(ctx, args.memberId);
@@ -219,6 +251,7 @@ export const addExpense = mutation({
       merchant: rest.merchant,
       address: rest.address,
       originalCategory: rest.originalCategory,
+      recurringEntry: rest.recurringEntry,
     });
     
     return expenseId;
@@ -419,3 +452,13 @@ export const deleteExpense = mutation({
     return true;
   },
 });
+
+function getDaysInMonth(month: string) {
+  const [yearString, monthString] = month.split("-");
+  const year = Number(yearString);
+  const monthIndex = Number(monthString);
+  if (!Number.isFinite(year) || !Number.isFinite(monthIndex)) {
+    return 31;
+  }
+  return new Date(year, monthIndex, 0).getDate();
+}

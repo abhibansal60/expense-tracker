@@ -17,6 +17,7 @@ import type * as auth from "../auth.js";
 import type * as categories from "../categories.js";
 import type * as expenses from "../expenses.js";
 import type * as householdUser from "../householdUser.js";
+import type * as recurring from "../recurring.js";
 import type * as users from "../users.js";
 
 /**
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   expenses: typeof expenses;
   householdUser: typeof householdUser;
+  recurring: typeof recurring;
   users: typeof users;
 }>;
 export declare const api: FilterApi<
