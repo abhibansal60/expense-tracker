@@ -1,8 +1,9 @@
 import { query, mutation } from "./_generated/server";
+import type { QueryCtx } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { ensureHouseholdUser } from "./householdUser";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 
 const FALLBACK_CATEGORY = "General";
 
@@ -40,44 +41,31 @@ export const getExpenses = query({
   },
   handler: async (ctx, args) => {
     const { paginationOpts, ...filters } = args;
-    let query = ctx.db.query("expenses");
-
-    // Apply filters
-    if (filters.category) {
-      query = query.filter((q) => q.eq(q.field("category"), filters.category));
-    }
-
-    if (filters.type) {
-      query = query.filter((q) => q.eq(q.field("type"), filters.type));
-    }
-
-    if (filters.startDate) {
-      query = query.filter((q) => q.gte(q.field("date"), filters.startDate!));
-    }
-
-    if (filters.endDate) {
-      query = query.filter((q) => q.lte(q.field("date"), filters.endDate!));
-    }
-
-    const paginatedExpenses = await query.order("desc").paginate(paginationOpts);
-
-    // Get category details for each expense
-    const expensesWithCategories = await Promise.all(
-      paginatedExpenses.page.map(async (expense) => {
-        const category = await ctx.db.get(expense.category);
-        const user = await ctx.db.get(expense.addedBy);
-        return {
-          ...expense,
-          categoryDetails: category,
-          userDetails: user ? { name: user.name, email: user.email } : null,
-        };
-      })
-    );
+    const baseQuery = buildFilteredExpenseQuery(ctx, filters);
+    const paginatedExpenses = await baseQuery.paginate(paginationOpts);
+    const pageWithDetails = await hydrateExpenses(ctx, paginatedExpenses.page);
 
     return {
       ...paginatedExpenses,
-      page: expensesWithCategories,
+      page: pageWithDetails,
     };
+  },
+});
+
+export const listRecentExpenses = query({
+  args: {
+    limit: v.optional(v.number()),
+    category: v.optional(v.id("categories")),
+    startDate: v.optional(v.string()),
+    endDate: v.optional(v.string()),
+    type: v.optional(v.union(v.literal("income"), v.literal("expense"))),
+  },
+  handler: async (ctx, args) => {
+    const { limit, ...filters } = args;
+    const baseQuery = buildFilteredExpenseQuery(ctx, filters);
+    const safeLimit = normalizeLegacyLimit(limit);
+    const expenses = await baseQuery.take(safeLimit);
+    return hydrateExpenses(ctx, expenses);
   },
 });
 
@@ -92,7 +80,7 @@ export const getMonthlySummary = query({
 
     const expenses = await ctx.db
       .query("expenses")
-      .filter((q) => 
+      .filter((q) =>
         q.and(
           q.gte(q.field("date"), startDate),
           q.lte(q.field("date"), endDate)
@@ -464,4 +452,54 @@ function getDaysInMonth(month: string) {
     return 31;
   }
   return new Date(year, monthIndex, 0).getDate();
+}
+
+type ExpenseFiltersInput = {
+  category?: Id<"categories">;
+  startDate?: string;
+  endDate?: string;
+  type?: "income" | "expense";
+};
+
+function buildFilteredExpenseQuery(ctx: QueryCtx, filters: ExpenseFiltersInput) {
+  let queryBuilder = ctx.db.query("expenses");
+
+  if (filters.category) {
+    queryBuilder = queryBuilder.filter((q) => q.eq(q.field("category"), filters.category!));
+  }
+
+  if (filters.type) {
+    queryBuilder = queryBuilder.filter((q) => q.eq(q.field("type"), filters.type!));
+  }
+
+  if (filters.startDate) {
+    queryBuilder = queryBuilder.filter((q) => q.gte(q.field("date"), filters.startDate!));
+  }
+
+  if (filters.endDate) {
+    queryBuilder = queryBuilder.filter((q) => q.lte(q.field("date"), filters.endDate!));
+  }
+
+  return queryBuilder.order("desc");
+}
+
+async function hydrateExpenses(ctx: QueryCtx, expenses: Array<Doc<"expenses">>) {
+  return Promise.all(
+    expenses.map(async (expense) => {
+      const category = await ctx.db.get(expense.category);
+      const user = await ctx.db.get(expense.addedBy);
+      return {
+        ...expense,
+        categoryDetails: category,
+        userDetails: user ? { name: user.name, email: user.email } : null,
+      };
+    })
+  );
+}
+
+function normalizeLegacyLimit(input?: number) {
+  if (typeof input !== "number" || !Number.isFinite(input) || input <= 0) {
+    return 50;
+  }
+  return Math.min(200, Math.max(5, Math.round(input)));
 }
