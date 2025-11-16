@@ -85,6 +85,24 @@ Given those benefits, removing Convex would require rebuilding auth, data access
 | `npx convex dev` | Run Convex backend locally |
 | `npx convex deploy` | Deploy Convex functions to the cloud |
 
+## Cloudflare Pages deployment
+Cloudflare Pages can build the Vite site out of the box. The Convex backend remains hosted by Convex, so the only runtime configuration Pages needs is the public `VITE_CONVEX_URL`.
+
+1. **Create a Pages project**
+   - Build command: `npm run build`
+   - Build output directory: `dist`
+   - Node version: 20 (set in the project settings or via the `NODE_VERSION` variable).
+2. **Environment variables**
+   - `VITE_CONVEX_URL` – point this at your Convex deployment (e.g. `https://<your-app>.convex.cloud`).
+   - Optional preview overrides: Pages lets you supply a different `VITE_CONVEX_URL` per environment if you have multiple Convex deployments.
+3. **GitHub Action deployment**
+   - Add the following repository secrets so the workflow in `.github/workflows/deploy-cloudflare-pages.yml` can publish builds:
+     - `CLOUDFLARE_ACCOUNT_ID`
+     - `CLOUDFLARE_API_TOKEN` (needs the *Cloudflare Pages - Edit* scope).
+     - `CLOUDFLARE_PAGES_PROJECT_NAME`
+     - `VITE_CONVEX_URL` (matches the value used in the Pages dashboard).
+   - Pushes to `main` (or manual `workflow_dispatch`) run `npm ci && npm run build` and hand the generated `dist/` folder to the official `cloudflare/pages-action` so production and preview deployments stay in sync with the repo.
+
 ## Data model highlights
 - **users**: stored via Convex Auth; additional profile data is synced via `users.ts`.
 - **categories**: emoji/name/isDefault metadata plus creator.

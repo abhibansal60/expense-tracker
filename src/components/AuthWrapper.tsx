@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useRef } from 'react';
-import { useAuth, useAuthActions } from '@convex-dev/auth/react';
-import { Authenticated, Unauthenticated, useMutation, useQuery } from 'convex/react';
+import { useAuthActions } from '@convex-dev/auth/react';
+import { Authenticated, Unauthenticated, useConvexAuth, useMutation, useQuery } from 'convex/react';
 import { LogIn, Loader2 } from 'lucide-react';
 import { api } from '../../convex/_generated/api';
 
@@ -61,13 +61,13 @@ function LoadingPage() {
 }
 
 export function AuthWrapper({ children }: AuthWrapperProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useConvexAuth();
   const user = useQuery(api.users.getCurrentUser);
   const syncCurrentUser = useMutation(api.users.syncCurrentUser);
   const hasSyncedRef = useRef(false);
 
   useEffect(() => {
-    if (isAuthenticated && !hasSyncedRef.current) {
+    if (!isLoading && isAuthenticated && !hasSyncedRef.current) {
       hasSyncedRef.current = true;
       void syncCurrentUser().catch(() => {
         hasSyncedRef.current = false;
@@ -77,7 +77,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     if (!isAuthenticated) {
       hasSyncedRef.current = false;
     }
-  }, [isAuthenticated, syncCurrentUser]);
+  }, [isAuthenticated, isLoading, syncCurrentUser]);
   
   // Show loading while authentication state is being determined
   if (user === undefined) {
