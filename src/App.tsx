@@ -9,6 +9,24 @@ import { AccessGate } from './components/AccessGate';
 import { HouseholdUserGate } from './components/HouseholdUserGate';
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL!);
+const buildTimeLabel = (() => {
+  const parsedDate = new Date(__BUILD_TIME__);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return (
+    parsedDate.toLocaleString('en-US', {
+      timeZone: 'UTC',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }) + ' UTC'
+  );
+})();
 
 function App() {
   const [filtersVisible, setFiltersVisible] = useState(false);
@@ -62,6 +80,15 @@ function App() {
                     </AuthWrapper>
                   </main>
                 </div>
+                <footer className="version-footer" aria-label="Application version information">
+                  <div>
+                    <div className="version-footer__label">App version</div>
+                    <div className="version-footer__meta">
+                      {buildTimeLabel ? `Built ${buildTimeLabel}` : 'Build time unavailable'}
+                    </div>
+                  </div>
+                  <span className="version-footer__value">{__APP_VERSION__}</span>
+                </footer>
               </div>
               <MobileNav active={activeView} onNavigate={handleViewChange} />
             </div>
