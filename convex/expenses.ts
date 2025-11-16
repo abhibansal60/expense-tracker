@@ -1,4 +1,5 @@
 import { query, mutation } from "./_generated/server";
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import { ensureHouseholdUser } from "./householdUser";
 import type { Id } from "./_generated/dataModel";
@@ -31,39 +32,38 @@ export const buildExpenseDedupeKey = ({
 // Query to get all expenses (shared between users)
 export const getExpenses = query({
   args: {
-    limit: v.optional(v.number()),
+    paginationOpts: paginationOptsValidator,
     category: v.optional(v.id("categories")),
     startDate: v.optional(v.string()),
     endDate: v.optional(v.string()),
     type: v.optional(v.union(v.literal("income"), v.literal("expense"))),
   },
   handler: async (ctx, args) => {
+    const { paginationOpts, ...filters } = args;
     let query = ctx.db.query("expenses");
-    
+
     // Apply filters
-    if (args.category) {
-      query = query.filter((q) => q.eq(q.field("category"), args.category));
+    if (filters.category) {
+      query = query.filter((q) => q.eq(q.field("category"), filters.category));
     }
-    
-    if (args.type) {
-      query = query.filter((q) => q.eq(q.field("type"), args.type));
+
+    if (filters.type) {
+      query = query.filter((q) => q.eq(q.field("type"), filters.type));
     }
-    
-    if (args.startDate) {
-      query = query.filter((q) => q.gte(q.field("date"), args.startDate!));
+
+    if (filters.startDate) {
+      query = query.filter((q) => q.gte(q.field("date"), filters.startDate!));
     }
-    
-    if (args.endDate) {
-      query = query.filter((q) => q.lte(q.field("date"), args.endDate!));
+
+    if (filters.endDate) {
+      query = query.filter((q) => q.lte(q.field("date"), filters.endDate!));
     }
-    
-    const expenses = await query
-      .order("desc")
-      .take(args.limit ?? 50);
-    
+
+    const paginatedExpenses = await query.order("desc").paginate(paginationOpts);
+
     // Get category details for each expense
     const expensesWithCategories = await Promise.all(
-      expenses.map(async (expense) => {
+      paginatedExpenses.page.map(async (expense) => {
         const category = await ctx.db.get(expense.category);
         const user = await ctx.db.get(expense.addedBy);
         return {
@@ -73,8 +73,11 @@ export const getExpenses = query({
         };
       })
     );
-    
-    return expensesWithCategories;
+
+    return {
+      ...paginatedExpenses,
+      page: expensesWithCategories,
+    };
   },
 });
 
