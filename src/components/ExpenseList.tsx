@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useQuery } from 'convex/react';
+import { useState, useMemo } from 'react';
+import { usePaginatedQuery, useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import { Filter, Calendar, TrendingDown, TrendingUp } from 'lucide-react';
@@ -37,14 +37,25 @@ export function ExpenseList({ showFilters, onShowFiltersChange, compactMode }: E
     endDate: '',
   });
 
-  const expenses =
-    useQuery(api.expenses.getExpenses, {
-      limit: 50,
+  const { results: expenses, status, loadMore } = usePaginatedQuery(
+    api.expenses.getExpenses,
+    {
       category: filters.category || undefined,
       type: filters.type || undefined,
       startDate: filters.startDate || undefined,
       endDate: filters.endDate || undefined,
-    }) ?? [];
+    },
+    { initialNumItems: compactMode ? 15 : 20 }
+  );
+
+  const paginationState = useMemo(() => {
+    return {
+      isLoadingFirstPage: status === 'LoadingFirstPage',
+      isLoadingMore: status === 'LoadingMore',
+      canLoadMore: status === 'CanLoadMore',
+      hasResults: expenses.length > 0,
+    };
+  }, [status, expenses.length]);
 
   const categories = useQuery(api.categories.getCategories) ?? [];
 
@@ -93,7 +104,11 @@ export function ExpenseList({ showFilters, onShowFiltersChange, compactMode }: E
         <div>
           <p className="eyebrow">Recent activity</p>
           <h3 className="panel-title">Timeline</h3>
-          <p className="list-count">{expenses.length} latest entries</p>
+          <p className="list-count">
+            {paginationState.isLoadingFirstPage
+              ? 'Loading latest entries...'
+              : `${expenses.length} entries loaded`}
+          </p>
         </div>
         <button className="btn-soft" onClick={() => onShowFiltersChange(!showFilters)}>
           <Filter className="h-4 w-4" />
@@ -171,7 +186,13 @@ export function ExpenseList({ showFilters, onShowFiltersChange, compactMode }: E
       )}
 
       <div className={`expense-feed ${compactMode ? 'expense-feed--compact' : ''}`}>
-        {expenses.length === 0 ? (
+        {paginationState.isLoadingFirstPage ? (
+          <div className="empty-feed">
+            <Calendar className="h-10 w-10" />
+            <p>Loading recent activity...</p>
+            <p className="text-sm text-gray-500">Hang tight while we fetch your entries.</p>
+          </div>
+        ) : expenses.length === 0 ? (
           <div className="empty-feed">
             <Calendar className="h-10 w-10" />
             <p>No expenses found</p>
@@ -208,6 +229,17 @@ export function ExpenseList({ showFilters, onShowFiltersChange, compactMode }: E
           })
         )}
       </div>
+      {paginationState.hasResults && (paginationState.canLoadMore || paginationState.isLoadingMore) && (
+        <div className="mt-4 flex justify-center">
+          <button
+            className="btn-secondary w-full"
+            disabled={!paginationState.canLoadMore}
+            onClick={() => paginationState.canLoadMore && loadMore(20)}
+          >
+            {paginationState.isLoadingMore ? 'Loading more...' : 'Load more'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
