@@ -333,6 +333,10 @@ function transformLegacyRows(rows: Record<string, string>[]): NormalizedImportEn
         ? `${row.Category} > ${row.Subcategory}`
         : row.Category || undefined;
 
+    if (isInputToMonzoTransfer(account, description)) {
+      continue;
+    }
+
     entries.push({
       amount,
       description,
@@ -381,6 +385,17 @@ function transformMonzoRows(rows: Record<string, string>[]): NormalizedImportEnt
   }
 
   return entries;
+}
+
+function isInputToMonzoTransfer(account: string, description: string) {
+  const normalizedAccount = account.toLowerCase();
+  const normalizedDescription = description.toLowerCase();
+
+  return (
+    normalizedAccount.includes('input account') &&
+    normalizedDescription.includes('monzo account') &&
+    normalizedDescription.includes('transfer')
+  );
 }
 
 function toNumber(value?: string) {
