@@ -462,7 +462,9 @@ type ExpenseFiltersInput = {
 };
 
 function buildFilteredExpenseQuery(ctx: QueryCtx, filters: ExpenseFiltersInput) {
-  let queryBuilder = ctx.db.query("expenses");
+  // Always use the date index so pagination queries don't require a full table scan
+  // in production environments with larger datasets.
+  let queryBuilder = ctx.db.query("expenses").withIndex("by_date");
 
   if (filters.category) {
     queryBuilder = queryBuilder.filter((q) => q.eq(q.field("category"), filters.category!));
