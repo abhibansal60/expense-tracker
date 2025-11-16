@@ -14,6 +14,7 @@ jobs:
       deployments: write
     env:
       VITE_CONVEX_URL: ${{ secrets.VITE_CONVEX_URL }}
+      VITE_ACCESS_CODE_HASH: ${{ secrets.VITE_ACCESS_CODE_HASH }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
