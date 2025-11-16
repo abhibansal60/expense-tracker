@@ -1086,6 +1086,40 @@ code {
   width: 100%;
 }
 
+.version-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+}
+
+.version-footer__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.version-footer__meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.version-footer__value {
+  font-family: 'JetBrains Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--surface-alt);
+  padding: 7px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border-soft);
+}
+
 .screen {
   display: block;
   width: 100%;
