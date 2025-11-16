@@ -17,15 +17,16 @@ export function SettingsDialog({ isOpen, preferences, onUpdatePreferences, onClo
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="settings-panel w-full max-w-lg card">
-        <div className="flex items-center justify-between mb-4">
+    <div className="sheet-overlay" role="dialog" aria-modal="true">
+      <div className="settings-sheet">
+        <div className="sheet-handle" aria-hidden="true" />
+        <div className="sheet-header">
           <div>
             <p className="eyebrow">Workspace settings</p>
             <h3 className="panel-title">Customize your tracker</h3>
             <p className="panel-subtitle">Personalize how lists look and behave on this device.</p>
           </div>
-          <button className="btn-soft" onClick={onClose} aria-label="Close settings">
+          <button className="btn-secondary" onClick={onClose} aria-label="Close settings">
             <X className="h-4 w-4" />
             Close
           </button>

@@ -145,21 +145,36 @@ export function DataBridgePanel() {
     fileInputRef.current?.click();
   };
 
+  const statusLabel = {
+    idle: 'Waiting for file',
+    parsing: 'Parsing CSV',
+    uploading: 'Uploading entries',
+    done: 'Import complete',
+    error: 'Import failed',
+  }[importStatus];
+
+  const statusTone =
+    importStatus === 'done'
+      ? 'success'
+      : importStatus === 'error'
+        ? 'error'
+        : importStatus === 'idle'
+          ? 'muted'
+          : 'progress';
+
   return (
-    <section className="card glass-panel data-bridge-panel">
-      <div className="bridge-toolbar">
+    <section className="card data-bridge" data-section="import">
+      <div className="bridge-header">
         <div>
           <p className="eyebrow">Data bridge</p>
-          <h3 className="panel-title">Import or export your expenses</h3>
-          <p className="panel-subtitle">
-            Works with your previous tracker export and Monzo CSV statements so you can switch without re-entering data.
-          </p>
+          <h3 className="panel-title">Import & export</h3>
+          <p className="panel-subtitle">Bring in Monzo statements or legacy CSV exports on the go.</p>
         </div>
-        <button className="btn-soft bridge-export" onClick={handleExport} disabled={exportRequested}>
+        <button className="pill-button" onClick={handleExport} disabled={exportRequested}>
           {exportRequested ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Preparing…</span>
+              <span>Preparing</span>
             </>
           ) : (
             <>
@@ -170,34 +185,35 @@ export function DataBridgePanel() {
         </button>
       </div>
 
-      <div className="import-zone">
-        <div className="import-cta">
-          <Upload className="h-6 w-6 text-primary-600" />
+      <div className="bridge-upload">
+        <button type="button" className="upload-tile" onClick={openFilePicker} disabled={isBusy}>
+          <Upload className={`upload-icon ${isBusy ? 'animate-pulse' : ''}`} />
           <div>
-            <p className="font-semibold text-gray-900">Drop a CSV</p>
-            <p className="text-sm text-gray-500">
-              Supports <strong>export-from-existing-app.csv</strong> and <strong>monzo-sample-export.csv</strong>.
-            </p>
+            <p>{isBusy ? 'Working on your file...' : 'Tap to import a CSV'}</p>
+            <span>
+              {activeFileName
+                ? `Selected: ${activeFileName}`
+                : 'Supports Monzo and Money Manager exports'}
+            </span>
           </div>
-        </div>
-        <button type="button" className="btn-primary-outline" onClick={openFilePicker} disabled={isBusy}>
-          {isBusy ? 'Working…' : 'Choose file'}
         </button>
         <input
           ref={fileInputRef}
           type="file"
           accept=".csv"
-          style={{ display: 'none' }}
+          className="sr-only"
           onChange={handleFileUpload}
           disabled={isBusy}
         />
       </div>
 
-      {activeFileName && (
-        <p className="text-sm text-gray-500 mt-2">
-          {isBusy ? 'Processing' : 'Last file'}: <span className="font-medium text-gray-800">{activeFileName}</span>
-        </p>
-      )}
+      <div className="bridge-status">
+        <span className={`status-chip status-chip--${statusTone}`}>{statusLabel}</span>
+        {activeFileName && <span className="status-chip status-chip--muted">{activeFileName}</span>}
+        {importSummary && (
+          <span className="status-chip status-chip--muted">{summaryLines.join(' | ')}</span>
+        )}
+      </div>
 
       {importSummary && (
         <div className="import-summary">

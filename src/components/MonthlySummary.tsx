@@ -1,7 +1,9 @@
 import { type ReactNode } from 'react';
 import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
 import { TrendingUp, TrendingDown, Wallet, PieChart } from 'lucide-react';
+import { api } from '../../convex/_generated/api';
+
+const GBP_SYMBOL = '\u00A3';
 
 interface MonthlySummaryProps {
   month: string; // Format: "2025-09"
@@ -13,14 +15,13 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
 
   if (!summary) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="card animate-pulse">
-            <div className="h-4 bg-gray-200 rounded mb-2"></div>
-            <div className="h-8 bg-gray-200 rounded"></div>
-          </div>
-        ))}
-      </div>
+      <section className="card monthly-card" data-section="insights" aria-busy="true">
+        <div className="summary-skeleton">
+          {[1, 2, 3, 4].map((value) => (
+            <div key={value} className="skeleton-card" />
+          ))}
+        </div>
+      </section>
     );
   }
 
@@ -31,96 +32,100 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
   const hasActivity = summary.totalExpenses > 0 || summary.totalIncome > 0;
 
   return (
-    <section className="card">
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+    <section className="card monthly-card" data-section="insights">
+      <div className="summary-header">
         <div>
           <p className="eyebrow">Monthly overview</p>
           <h2 className="panel-title">{monthName}</h2>
-          <p className="panel-subtitle">Live totals from every source connected to your workspace.</p>
+          <p className="panel-subtitle">Live totals from every connected source.</p>
         </div>
         {actions}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="summary-grid">
         <div className="summary-card">
           <div>
-            <p className="text-sm text-gray-600">Total income</p>
-            <p className="summary-value text-green-600">£{summary.totalIncome.toFixed(2)}</p>
-          </div>
-          <div className="summary-icon bg-green-100 text-green-600">
-            <TrendingUp className="h-6 w-6" />
-          </div>
-          <p className="summary-meta">
-            {summary.incomeCount} transaction{summary.incomeCount !== 1 ? 's' : ''}
-          </p>
-        </div>
-
-        <div className="summary-card">
-          <div>
-            <p className="text-sm text-gray-600">Total expenses</p>
-            <p className="summary-value text-red-600">£{summary.totalExpenses.toFixed(2)}</p>
-          </div>
-          <div className="summary-icon bg-red-100 text-red-600">
-            <TrendingDown className="h-6 w-6" />
-          </div>
-          <p className="summary-meta">
-            {summary.expenseCount} transaction{summary.expenseCount !== 1 ? 's' : ''}
-          </p>
-        </div>
-
-        <div className="summary-card">
-          <div>
-            <p className="text-sm text-gray-600">Net position</p>
-            <p className={`summary-value ${summary.netAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              £{Math.abs(summary.netAmount).toFixed(2)}
+            <p>Total income</p>
+            <p className="summary-value positive">
+              {GBP_SYMBOL}
+              {summary.totalIncome.toFixed(2)}
             </p>
+            <span className="summary-meta">
+              {summary.incomeCount} transaction{summary.incomeCount !== 1 ? 's' : ''}
+            </span>
           </div>
-          <div
-            className={`summary-icon ${
-              summary.netAmount >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-            }`}
-          >
-            <Wallet className="h-6 w-6" />
+          <div className="summary-icon positive">
+            <TrendingUp className="h-5 w-5" />
           </div>
-          <p className="summary-meta">{summary.netAmount >= 0 ? 'In surplus' : 'In deficit'}</p>
         </div>
 
         <div className="summary-card">
           <div>
-            <p className="text-sm text-gray-600">Active categories</p>
-            <p className="summary-value text-primary-600">{summary.categoryBreakdown.length}</p>
+            <p>Total expenses</p>
+            <p className="summary-value negative">
+              {GBP_SYMBOL}
+              {summary.totalExpenses.toFixed(2)}
+            </p>
+            <span className="summary-meta">
+              {summary.expenseCount} transaction{summary.expenseCount !== 1 ? 's' : ''}
+            </span>
           </div>
-          <div className="summary-icon bg-primary-100 text-primary-600">
-            <PieChart className="h-6 w-6" />
+          <div className="summary-icon negative">
+            <TrendingDown className="h-5 w-5" />
           </div>
-          <p className="summary-meta">Spending buckets with activity</p>
+        </div>
+
+        <div className="summary-card">
+          <div>
+            <p>Net position</p>
+            <p className={`summary-value ${summary.netAmount >= 0 ? 'positive' : 'negative'}`}>
+              {GBP_SYMBOL}
+              {Math.abs(summary.netAmount).toFixed(2)}
+            </p>
+            <span className="summary-meta">{summary.netAmount >= 0 ? 'In surplus' : 'In deficit'}</span>
+          </div>
+          <div className={`summary-icon ${summary.netAmount >= 0 ? 'positive' : 'negative'}`}>
+            <Wallet className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="summary-card">
+          <div>
+            <p>Active categories</p>
+            <p className="summary-value accent">{summary.categoryBreakdown.length}</p>
+            <span className="summary-meta">Spending buckets</span>
+          </div>
+          <div className="summary-icon accent">
+            <PieChart className="h-5 w-5" />
+          </div>
         </div>
       </div>
 
       {summary.categoryBreakdown.length > 0 && (
-        <div className="mt-6">
-          <p className="eyebrow">Spending by category</p>
-          <h4 className="panel-title">Where your money went</h4>
-          <div className="space-y-3 mt-4">
+        <div className="category-breakdown">
+          <p className="eyebrow">Top categories</p>
+          <div className="category-list">
             {summary.categoryBreakdown
               .sort((a, b) => b.amount - a.amount)
-              .slice(0, 8)
+              .slice(0, 6)
               .map((category) => {
                 const percentage = summary.totalExpenses
                   ? (category.amount / summary.totalExpenses) * 100
                   : 0;
                 return (
                   <div key={category.categoryId} className="category-row">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-700">{category.categoryName}</span>
-                      <div className="text-sm text-gray-600">
-                        £{category.amount.toFixed(2)} ({category.count})
-                      </div>
+                    <div>
+                      <p>{category.categoryName}</p>
+                      <span>
+                        {GBP_SYMBOL}
+                        {category.amount.toFixed(2)}{' '}
+                        {'\u00B7'} {category.count} item
+                        {category.count !== 1 ? 's' : ''}
+                      </span>
                     </div>
-                    <div className="progress-track">
-                      <div className="progress-fill" style={{ width: `${Math.min(percentage, 100)}%` }}></div>
+                    <div className="category-meter">
+                      <div style={{ width: `${Math.min(percentage, 100)}%` }} />
                     </div>
-                    <span className="text-xs text-gray-500">{percentage.toFixed(1)}% of expenses</span>
                   </div>
                 );
               })}
@@ -130,8 +135,8 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
 
       {!hasActivity && (
         <div className="empty-summary">
-          <p className="font-semibold text-gray-700">No data for {monthName}</p>
-          <p className="text-sm text-gray-500">
+          <p>No data for {monthName}</p>
+          <p className="panel-subtitle">
             Use the data bridge or add a manual expense to see insights for this month.
           </p>
         </div>

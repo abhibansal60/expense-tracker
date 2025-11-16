@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { useQuery } from 'convex/react';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ExpenseForm } from './ExpenseForm';
 import { ExpenseList } from './ExpenseList';
 import { MonthlySummary } from './MonthlySummary';
@@ -16,16 +16,22 @@ export type ExpenseTrackerPreferences = {
   compactMode: boolean;
 };
 
+export type TrackerView = 'overview' | 'activity' | 'import';
+
 interface ExpenseTrackerProps {
   showFilters: boolean;
   onToggleFilters: () => void;
   preferences: ExpenseTrackerPreferences;
+  activeView: TrackerView;
+  onChangeView: (view: TrackerView) => void;
 }
 
 export function ExpenseTracker({
   showFilters,
   onToggleFilters,
   preferences,
+  activeView,
+  onChangeView,
 }: ExpenseTrackerProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState('');
@@ -59,44 +65,80 @@ export function ExpenseTracker({
   };
 
   const monthActions = (
-    <div className="month-controls">
+    <div className="month-selector">
       <button
         type="button"
-        className="btn-soft"
+        className="pill-button icon-only"
         onClick={goToOlderMonth}
         disabled={currentIndex === monthOptions.length - 1}
+        aria-label="Go to older month"
       >
-        Previous
+        <ChevronLeft size={18} />
       </button>
-      <select value={activeMonth} onChange={handleMonthSelect} className="month-select input-field">
-        {monthOptions.map((month) => (
-          <option key={month} value={month}>
-            {formatMonthLabel(month)}
-          </option>
-        ))}
-      </select>
-      <button type="button" className="btn-soft" onClick={goToNewerMonth} disabled={currentIndex <= 0}>
-        Next
+      <div className="month-display">
+        <span>Active month</span>
+        <strong>{formatMonthLabel(activeMonth)}</strong>
+        <select value={activeMonth} onChange={handleMonthSelect} className="month-picker" aria-label="Select month">
+          {monthOptions.map((month) => (
+            <option key={month} value={month}>
+              {formatMonthLabel(month)}
+            </option>
+          ))}
+        </select>
+      </div>
+      <button
+        type="button"
+        className="pill-button icon-only"
+        onClick={goToNewerMonth}
+        disabled={currentIndex <= 0}
+        aria-label="Go to newer month"
+      >
+        <ChevronRight size={18} />
       </button>
     </div>
   );
 
-  return (
-    <div className="space-y-6">
-      <MonthlySummary month={activeMonth} actions={monthActions} />
+  const viewTabs: Array<{ id: TrackerView; label: string; helper: string }> = [
+    { id: 'overview', label: 'Overview', helper: 'Insights' },
+    { id: 'activity', label: 'Activity', helper: 'Manual + timeline' },
+    { id: 'import', label: 'Bridge', helper: 'CSV workflows' },
+  ];
 
-      <div className="dashboard-grid">
-        <div className="space-y-6">
-          <section className="card">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div>
-                <p className="eyebrow">Manual entry</p>
-                <h2 className="panel-title">Add a quick expense</h2>
-                <p className="panel-subtitle">Capture ad-hoc purchases and credits in seconds.</p>
-              </div>
+  return (
+    <div className="screen-stack">
+      <div className="view-tabs" role="tablist">
+        {viewTabs.map((tab) => (
+          <button
+            key={tab.id}
+            className={`view-tabs__item ${activeView === tab.id ? 'view-tabs__item--active' : ''}`}
+            type="button"
+            onClick={() => onChangeView(tab.id)}
+            role="tab"
+            aria-selected={activeView === tab.id}
+          >
+            <span>{tab.label}</span>
+            <small>{tab.helper}</small>
+          </button>
+        ))}
+      </div>
+
+      {activeView === 'overview' && <MonthlySummary month={activeMonth} actions={monthActions} />}
+
+      {activeView === 'activity' && (
+        <>
+          <section className="card quick-entry-card">
+            <div>
+              <p className="eyebrow">Quick entry</p>
+              <h2 className="panel-title">Add a manual expense</h2>
+              <p className="panel-subtitle">Tap below or use the floating button to launch the form.</p>
+            </div>
+            <div className="quick-entry-actions">
               <button onClick={() => setShowAddForm(true)} className="btn-primary">
                 <Plus className="h-4 w-4" />
                 <span>Add expense</span>
+              </button>
+              <button onClick={onToggleFilters} className="btn-secondary">
+                {showFilters ? 'Hide filters' : 'Show filters'}
               </button>
             </div>
           </section>
@@ -110,19 +152,29 @@ export function ExpenseTracker({
             }}
             compactMode={preferences.compactMode}
           />
-        </div>
+        </>
+      )}
 
-        <div className="space-y-6">
-          <DataBridgePanel />
-        </div>
-      </div>
+      {activeView === 'import' && <DataBridgePanel />}
 
       {showAddForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <div className="sheet-overlay" role="dialog" aria-modal="true">
+          <div className="sheet-panel">
             <ExpenseForm onSuccess={() => setShowAddForm(false)} onCancel={() => setShowAddForm(false)} />
           </div>
         </div>
+      )}
+
+      {activeView === 'activity' && (
+        <button
+          type="button"
+          className={`fab ${showAddForm ? 'fab--hidden' : ''}`}
+          onClick={() => setShowAddForm(true)}
+          aria-label="Add expense"
+        >
+          <Plus className="h-5 w-5" />
+          <span>New</span>
+        </button>
       )}
     </div>
   );

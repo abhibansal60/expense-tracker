@@ -12,10 +12,11 @@ type ExpenseFilters = {
 };
 
 const SOURCE_LABELS: Record<'manual' | 'monzo' | 'import', { label: string; className: string }> = {
-  manual: { label: 'Manual', className: 'source-badge source-badge--manual' },
-  monzo: { label: 'Monzo CSV', className: 'source-badge source-badge--monzo' },
-  import: { label: 'CSV import', className: 'source-badge source-badge--import' },
+  manual: { label: 'Manual', className: 'source-chip' },
+  monzo: { label: 'Monzo CSV', className: 'source-chip source-chip--accent' },
+  import: { label: 'Data bridge', className: 'source-chip source-chip--alt' },
 };
+const GBP_SYMBOL = '\u00A3';
 
 interface ExpenseListProps {
   showFilters: boolean;
@@ -52,7 +53,7 @@ export function ExpenseList({ showFilters, onShowFiltersChange, compactMode }: E
   };
 
   const formatAmount = (amount: number, type: 'income' | 'expense') => {
-    const formatted = `£${amount.toFixed(2)}`;
+    const formatted = `${GBP_SYMBOL}${amount.toFixed(2)}`;
     return type === 'income' ? `+${formatted}` : `-${formatted}`;
   };
 
@@ -83,10 +84,11 @@ export function ExpenseList({ showFilters, onShowFiltersChange, compactMode }: E
 
   return (
     <div className="card list-card">
-      <div className="flex items-center justify-between mb-4">
+      <div className="list-header">
         <div>
           <p className="eyebrow">Recent activity</p>
-          <h3 className="panel-title">Expense timeline ({expenses.length})</h3>
+          <h3 className="panel-title">Timeline</h3>
+          <p className="list-count">{expenses.length} latest entries</p>
         </div>
         <button className="btn-soft" onClick={() => onShowFiltersChange(!showFilters)}>
           <Filter className="h-4 w-4" />
@@ -95,10 +97,10 @@ export function ExpenseList({ showFilters, onShowFiltersChange, compactMode }: E
       </div>
 
       {showFilters && (
-        <div className="filter-panel mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+        <div className="filter-sheet">
+          <div className="filter-grid">
+            <label>
+              <span>Category</span>
               <select
                 value={filters.category}
                 onChange={(e) =>
@@ -117,10 +119,10 @@ export function ExpenseList({ showFilters, onShowFiltersChange, compactMode }: E
                   </option>
                 ))}
               </select>
-            </div>
+            </label>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+            <label>
+              <span>Type</span>
               <select
                 value={filters.type}
                 onChange={(e) =>
@@ -135,80 +137,65 @@ export function ExpenseList({ showFilters, onShowFiltersChange, compactMode }: E
                 <option value="expense">Expenses</option>
                 <option value="income">Income</option>
               </select>
-            </div>
+            </label>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+            <label>
+              <span>From date</span>
               <input
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => setFilters((prev) => ({ ...prev, startDate: e.target.value }))}
                 className="input-field text-sm"
               />
-            </div>
+            </label>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+            <label>
+              <span>To date</span>
               <input
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => setFilters((prev) => ({ ...prev, endDate: e.target.value }))}
                 className="input-field text-sm"
               />
-            </div>
+            </label>
           </div>
-
-          <div className="flex justify-end mt-4">
-            <button onClick={resetFilters} className="btn-secondary text-sm">
-              Reset Filters
-            </button>
-          </div>
+          <button onClick={resetFilters} className="btn-secondary filter-reset">
+            Reset filters
+          </button>
         </div>
       )}
 
-      <div className={`space-y-0 max-h-96 overflow-y-auto ${compactMode ? 'compact-list' : ''}`}>
+      <div className={`expense-feed ${compactMode ? 'expense-feed--compact' : ''}`}>
         {expenses.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+          <div className="empty-feed">
+            <Calendar className="h-10 w-10" />
             <p>No expenses found</p>
-            <p className="text-sm">Add your first expense to get started</p>
+            <p className="text-sm text-gray-500">Add your first expense to see it here.</p>
           </div>
         ) : (
           expenses.map((expense) => {
             const sourceMeta = getSourceMeta(expense.source as 'manual' | 'monzo' | 'import');
             return (
               <div key={expense._id} className="expense-item">
-                <div className="flex items-start gap-4">
-                  {renderTypeIcon(expense.type)}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900 truncate">{expense.description}</p>
-                        <div className="expense-meta mt-1">
-                          <span>
-                            {expense.categoryDetails?.emoji} {expense.categoryDetails?.name}
-                          </span>
-                          <span>{expense.account}</span>
-                          <span>{formatDate(expense.date)}</span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p
-                          className={`text-sm font-bold ${
-                            expense.type === 'income' ? 'text-green-600' : 'text-red-600'
-                          }`}
-                        >
-                          {formatAmount(expense.amount, expense.type)}
-                        </p>
-                        <div className="expense-meta justify-end">
-                          <span>by {expense.userDetails?.name?.split(' ')[0] || 'Unknown'}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="expense-meta mt-2">
-                      <span className={sourceMeta.className}>{sourceMeta.label}</span>
-                      {expense.merchant && <span>{expense.merchant}</span>}
-                    </div>
+                {renderTypeIcon(expense.type)}
+                <div className="expense-content">
+                  <div className="expense-row">
+                    <p className="expense-title">{expense.description}</p>
+                    <p className={`expense-amount ${expense.type === 'income' ? 'income' : 'expense'}`}>
+                      {formatAmount(expense.amount, expense.type)}
+                    </p>
+                  </div>
+                  <div className="expense-meta">
+                    <span>
+                      {expense.categoryDetails?.emoji} {expense.categoryDetails?.name}
+                    </span>
+                    <span>{expense.account}</span>
+                    <span>{formatDate(expense.date)}</span>
+                  </div>
+                  <div className="expense-meta">
+                    <span className={sourceMeta.className}>{sourceMeta.label}</span>
+                    <span>by {expense.userDetails?.name?.split(' ')[0] || 'Unknown'}</span>
+                    {expense.merchant && <span>{expense.merchant}</span>}
                   </div>
                 </div>
               </div>

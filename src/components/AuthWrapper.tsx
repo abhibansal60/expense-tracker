@@ -40,12 +40,12 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
 
 function GuestModeBanner({ userName }: { userName?: string | null }) {
   return (
-    <div className="mb-8 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 flex items-start gap-3">
-      <ShieldAlert className="h-5 w-5 shrink-0 text-amber-400" />
+    <div className="guest-banner" data-section="profile">
+      <ShieldAlert className="h-5 w-5 shrink-0 text-amber-500" />
       <div>
-        <p className="font-medium">Guest mode active</p>
+        <p className="font-semibold">Guest mode active</p>
         <p>
-          Authentication is temporarily disabled. All changes are saved under{' '}
+          Authentication is disabled. All changes are saved under{' '}
           <strong>{userName || 'Demo User'}</strong>.
         </p>
       </div>
