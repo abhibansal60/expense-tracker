@@ -1439,6 +1439,12 @@ code {
   gap: 18px;
 }
 
+.activity-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .activity-layout .list-card {
   height: 100%;
 }
@@ -2146,12 +2152,6 @@ code {
   display: grid;
   grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
   gap: 24px;
-}
-
-.activity-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }
 
   .activity-layout .quick-entry-card {
