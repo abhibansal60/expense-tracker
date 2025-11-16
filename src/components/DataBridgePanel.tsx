@@ -3,6 +3,7 @@ import { useMutation, useQuery } from 'convex/react';
 import Papa from 'papaparse';
 import { AlertCircle, FileDown, Loader2, Upload } from 'lucide-react';
 import { api } from '../../convex/_generated/api';
+import { useHouseholdUser } from './HouseholdUserGate';
 
 type NormalizedImportEntry = {
   amount: number;
@@ -41,6 +42,7 @@ export function DataBridgePanel() {
   const [exportError, setExportError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useHouseholdUser();
   const runImport = useMutation(api.expenses.importExpenses);
   const exportDataset = useQuery(api.expenses.exportExpenses, exportRequested ? {} : undefined);
 
@@ -123,6 +125,7 @@ export function DataBridgePanel() {
       const response = (await runImport({
         source: parsed.source,
         entries: parsed.entries,
+        memberId: user.id,
       })) as ImportResponse;
 
       setImportSummary(response);

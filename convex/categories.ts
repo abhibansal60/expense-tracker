@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { ensureDemoUser } from "./guestUser";
+import { ensureHouseholdUser } from "./householdUser";
 
 // Query to get all categories
 export const getCategories = query({
@@ -38,14 +38,16 @@ export const createCategory = mutation({
     name: v.string(),
     emoji: v.optional(v.string()),
     isDefault: v.optional(v.boolean()),
+    memberId: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await ensureDemoUser(ctx);
+    const user = await ensureHouseholdUser(ctx, args.memberId);
+    const { memberId, ...fields } = args;
     
     // Check if category already exists
     const existing = await ctx.db
       .query("categories")
-      .filter((q) => q.eq(q.field("name"), args.name))
+      .filter((q) => q.eq(q.field("name"), fields.name))
       .unique();
       
     if (existing) {
@@ -53,9 +55,9 @@ export const createCategory = mutation({
     }
     
     const categoryId = await ctx.db.insert("categories", {
-      name: args.name,
-      emoji: args.emoji,
-      isDefault: args.isDefault ?? false,
+      name: fields.name,
+      emoji: fields.emoji,
+      isDefault: fields.isDefault ?? false,
       createdBy: user._id,
       createdAt: Date.now(),
     });
@@ -66,9 +68,9 @@ export const createCategory = mutation({
 
 // Mutation to create default categories
 export const createDefaultCategories = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const user = await ensureDemoUser(ctx);
+  args: { memberId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ensureHouseholdUser(ctx, args.memberId);
     
     const defaultCategories = [
       { name: "🍜 Food", emoji: "🍜" },

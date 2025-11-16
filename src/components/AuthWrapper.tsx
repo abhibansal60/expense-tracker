@@ -1,7 +1,8 @@
 import { type ReactNode, useEffect } from 'react';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { Loader2, ShieldAlert } from 'lucide-react';
 import { api } from '../../convex/_generated/api';
+import { useHouseholdUser } from './HouseholdUserGate';
 
 interface AuthWrapperProps {
   children: ReactNode;
@@ -19,26 +20,35 @@ function LoadingPage() {
 }
 
 export function AuthWrapper({ children }: AuthWrapperProps) {
-  const ensureGuestUser = useMutation(api.users.syncCurrentUser);
-  const user = useQuery(api.users.getCurrentUser);
+  const ensureUserProfile = useMutation(api.users.syncCurrentUser);
+  const { user, clearUser } = useHouseholdUser();
 
   useEffect(() => {
-    void ensureGuestUser();
-  }, [ensureGuestUser]);
+    if (!user) {
+      return;
+    }
+    void ensureUserProfile({ memberId: user.id });
+  }, [ensureUserProfile, user]);
   
-  if (user === undefined) {
+  if (!user) {
     return <LoadingPage />;
   }
 
   return (
     <>
-      <GuestModeBanner userName={user?.name} />
+      <GuestModeBanner userName={user.name} onSwitchProfile={clearUser} />
       {children}
     </>
   );
 }
 
-function GuestModeBanner({ userName }: { userName?: string | null }) {
+function GuestModeBanner({
+  userName,
+  onSwitchProfile,
+}: {
+  userName: string;
+  onSwitchProfile: () => void;
+}) {
   return (
     <div className="guest-banner" data-section="profile">
       <ShieldAlert className="h-5 w-5 shrink-0 text-amber-500" />
@@ -46,9 +56,16 @@ function GuestModeBanner({ userName }: { userName?: string | null }) {
         <p className="font-semibold">Guest mode active</p>
         <p>
           Authentication is disabled. All changes are saved under{' '}
-          <strong>{userName || 'Demo User'}</strong>.
+          <strong>{userName}</strong>.
         </p>
       </div>
+      <button
+        type="button"
+        className="ml-auto text-sm font-semibold text-amber-700 underline decoration-dotted decoration-amber-500/70 hover:text-amber-900"
+        onClick={onSwitchProfile}
+      >
+        Switch profile
+      </button>
     </div>
   );
 }

@@ -2,22 +2,24 @@ import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Wallet, CheckCircle } from 'lucide-react';
+import { useHouseholdUser } from './HouseholdUserGate';
 
 interface InitialSetupProps {
   onComplete: () => void;
 }
 
 export function InitialSetup({ onComplete }: InitialSetupProps) {
+  const { user } = useHouseholdUser();
   const [isSetupComplete, setIsSetupComplete] = useState(false);
   const [setupStep, setSetupStep] = useState('Initializing...');
   
-  const isFirstTime = useQuery(api.users.isFirstTimeUser);
+  const isFirstTime = useQuery(api.users.isFirstTimeUser, { memberId: user.id });
   const createDefaultCategories = useMutation(api.categories.createDefaultCategories);
   
   const runInitialSetup = useCallback(async () => {
     try {
       setSetupStep('Creating default categories...');
-      await createDefaultCategories();
+      await createDefaultCategories({ memberId: user.id });
 
       setSetupStep('Setup complete!');
       setIsSetupComplete(true);

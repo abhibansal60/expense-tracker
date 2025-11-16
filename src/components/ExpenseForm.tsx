@@ -1,7 +1,8 @@
-import { useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { X, Save } from 'lucide-react';
 import { useMutation, useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { api } from '../../convex/_generated/api';
+import { useHouseholdUser } from './HouseholdUserGate';
 import type { Id } from '../../convex/_generated/dataModel';
 
 interface ExpenseFormProps {
@@ -36,18 +37,26 @@ const INCOME_CATEGORY_NAMES: Record<IncomeOwner, string> = {
 const getDefaultAccountForType = (type: ExpenseFormState['type']) =>
   type === 'income' ? INCOME_ACCOUNTS[0] : EXPENSE_ACCOUNTS[0];
 
-export function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
-  const [formData, setFormData] = useState<ExpenseFormState>({
-    amount: '',
-    description: '',
-    category: '',
-    account: getDefaultAccountForType('expense'),
-    incomeOwner: 'Abhinav',
-    date: new Date().toISOString().split('T')[0],
-    type: 'expense',
-  });
+export function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
+  const { user } = useHouseholdUser();
+  const [formData, setFormData] = useState<ExpenseFormState>({
+    amount: '',
+    description: '',
+    category: '',
+    account: getDefaultAccountForType('expense'),
+    incomeOwner: user.name as IncomeOwner,
+    date: new Date().toISOString().split('T')[0],
+    type: 'expense',
+  });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      incomeOwner: user.name as IncomeOwner,
+    }));
+  }, [user.name]);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   
   // Fetch categories for dropdown
@@ -63,11 +72,12 @@ export function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
       return existing._id;
     }
 
-    return await createCategory({
-      name: categoryName,
-      isDefault: false,
-    });
-  };
+    return await createCategory({
+      name: categoryName,
+      isDefault: false,
+      memberId: user.id,
+    });
+  };
 
   const ensureFallbackCategory = async () => {
     const otherCategory = categories.find((category) => category.name === 'Other');
@@ -75,12 +85,13 @@ export function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
       return otherCategory._id;
     }
 
-    return await createCategory({
-      name: 'Other',
-      emoji: '\u2713',
-      isDefault: true,
-    });
-  };
+    return await createCategory({
+      name: 'Other',
+      emoji: '\u2713',
+      isDefault: true,
+      memberId: user.id,
+    });
+  };
 
   const handleTypeChange = (type: ExpenseFormState['type']) => {
     setFormData((prev) => ({
@@ -129,15 +140,16 @@ export function ExpenseForm({ onSuccess, onCancel }: ExpenseFormProps) {
         return;
       }
 
-      await addExpense({
-        amount: amountValue,
-        description: trimmedDescription,
-        category: categoryId,
-        account: formData.account,
-        date: formData.date,
-        type: formData.type,
-        source: 'manual',
-      });
+      await addExpense({
+        amount: amountValue,
+        description: trimmedDescription,
+        category: categoryId,
+        account: formData.account,
+        date: formData.date,
+        type: formData.type,
+        source: 'manual',
+        memberId: user.id,
+      });
 
       setFormData((prev) => ({
         ...prev,

@@ -1,12 +1,12 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { ensureDemoUser, getDemoUser } from "./guestUser";
+import { ensureHouseholdUser, getHouseholdUser } from "./householdUser";
 
 // Query to get current user info
 export const getCurrentUser = query({
-  args: {},
-  handler: async (ctx) => {
-    return await getDemoUser(ctx);
+  args: { memberId: v.string() },
+  handler: async (ctx, args) => {
+    return await getHouseholdUser(ctx, args.memberId);
   },
 });
 
@@ -54,18 +54,18 @@ export const createOrUpdateUser = mutation({
 
 // Mutation to sync the authenticated user from Convex Auth
 export const syncCurrentUser = mutation({
-  args: {},
-  handler: async (ctx) => {
-    const user = await ensureDemoUser(ctx);
-    return user._id;
+  args: { memberId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ensureHouseholdUser(ctx, args.memberId);
+    return user?._id;
   },
 });
 
 // Query to check if this is the user's first time (for onboarding)
 export const isFirstTimeUser = query({
-  args: {},
-  handler: async (ctx) => {
-    const user = await getDemoUser(ctx);
+  args: { memberId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await getHouseholdUser(ctx, args.memberId);
     
     if (!user) return true;
     

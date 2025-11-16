@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { ensureDemoUser } from "./guestUser";
+import { ensureHouseholdUser } from "./householdUser";
 import type { Id } from "./_generated/dataModel";
 
 const FALLBACK_CATEGORY = "General";
@@ -168,24 +168,25 @@ export const addExpense = mutation({
     merchant: v.optional(v.string()),
     address: v.optional(v.string()),
     originalCategory: v.optional(v.string()),
+    memberId: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await ensureDemoUser(ctx);
-    
+    const user = await ensureHouseholdUser(ctx, args.memberId);
+    const { memberId, ...rest } = args;
     const expenseId = await ctx.db.insert("expenses", {
-      amount: args.amount,
-      description: args.description,
-      category: args.category,
-      account: args.account,
-      date: args.date,
-      type: args.type,
-      source: args.source ?? "manual",
+      amount: rest.amount,
+      description: rest.description,
+      category: rest.category,
+      account: rest.account,
+      date: rest.date,
+      type: rest.type,
+      source: rest.source ?? "manual",
       addedBy: user._id,
       createdAt: Date.now(),
-      monzoTransactionId: args.monzoTransactionId,
-      merchant: args.merchant,
-      address: args.address,
-      originalCategory: args.originalCategory,
+      monzoTransactionId: rest.monzoTransactionId,
+      merchant: rest.merchant,
+      address: rest.address,
+      originalCategory: rest.originalCategory,
     });
     
     return expenseId;
@@ -209,11 +210,13 @@ export const importExpenses = mutation({
         originalCategory: v.optional(v.string()),
       })
     ),
+    memberId: v.string(),
   },
   handler: async (ctx, args) => {
-    const user = await ensureDemoUser(ctx);
+    const user = await ensureHouseholdUser(ctx, args.memberId);
+    const { entries } = args;
 
-    if (args.entries.length === 0) {
+    if (entries.length === 0) {
       return {
         inserted: 0,
         skipped: 0,
@@ -258,7 +261,7 @@ export const importExpenses = mutation({
       return created;
     };
 
-    for (const [index, entry] of args.entries.entries()) {
+    for (const [index, entry] of entries.entries()) {
       const rowNumber = index + 1;
       try {
         if (!Number.isFinite(entry.amount) || entry.amount <= 0) {
@@ -314,7 +317,7 @@ export const importExpenses = mutation({
       inserted,
       skipped,
       failed: errors.length,
-      total: args.entries.length,
+      total: entries.length,
       errors,
     };
   },
@@ -330,10 +333,11 @@ export const updateExpense = mutation({
     account: v.optional(v.string()),
     date: v.optional(v.string()),
     type: v.optional(v.union(v.literal("income"), v.literal("expense"))),
+    memberId: v.string(),
   },
   handler: async (ctx, args) => {
-    await ensureDemoUser(ctx);
-    const { id, ...updates } = args;
+    await ensureHouseholdUser(ctx, args.memberId);
+    const { id, memberId, ...updates } = args;
     await ctx.db.patch(id, updates);
     
     return id;
@@ -342,9 +346,9 @@ export const updateExpense = mutation({
 
 // Mutation to delete an expense
 export const deleteExpense = mutation({
-  args: { id: v.id("expenses") },
+  args: { id: v.id("expenses"), memberId: v.string() },
   handler: async (ctx, args) => {
-    await ensureDemoUser(ctx);
+    await ensureHouseholdUser(ctx, args.memberId);
     await ctx.db.delete(args.id);
     return true;
   },

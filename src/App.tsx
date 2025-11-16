@@ -6,6 +6,7 @@ import { AuthWrapper } from './components/AuthWrapper';
 import { SettingsDialog } from './components/SettingsDialog';
 import { MobileNav } from './components/MobileNav';
 import { AccessGate } from './components/AccessGate';
+import { HouseholdUserGate } from './components/HouseholdUserGate';
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL!);
 
@@ -35,42 +36,44 @@ function App() {
 
   return (
     <AccessGate>
-      <ConvexProvider client={convex}>
-        <div className="app-shell">
-          <div className="mobile-frame" data-theme={theme}>
-            <div className="mobile-gradient" aria-hidden="true" />
-            <div className="mobile-scroll">
-              <div className="workspace-grid">
-                <Header
-                  filtersActive={filtersVisible}
-                  onToggleFilters={toggleFilters}
-                  onOpenSettings={() => setSettingsOpen(true)}
-                  theme={theme}
-                  onToggleTheme={toggleTheme}
-                />
-                <main className="screen" role="main">
-                  <AuthWrapper>
-                    <ExpenseTracker
-                      showFilters={filtersVisible}
-                      onToggleFilters={toggleFilters}
-                      preferences={preferences}
-                      activeView={activeView}
-                      onChangeView={handleViewChange}
-                    />
-                  </AuthWrapper>
-                </main>
+      <HouseholdUserGate>
+        <ConvexProvider client={convex}>
+          <div className="app-shell">
+            <div className="mobile-frame" data-theme={theme}>
+              <div className="mobile-gradient" aria-hidden="true" />
+              <div className="mobile-scroll">
+                <div className="workspace-grid">
+                  <Header
+                    filtersActive={filtersVisible}
+                    onToggleFilters={toggleFilters}
+                    onOpenSettings={() => setSettingsOpen(true)}
+                    theme={theme}
+                    onToggleTheme={toggleTheme}
+                  />
+                  <main className="screen" role="main">
+                    <AuthWrapper>
+                      <ExpenseTracker
+                        showFilters={filtersVisible}
+                        onToggleFilters={toggleFilters}
+                        preferences={preferences}
+                        activeView={activeView}
+                        onChangeView={handleViewChange}
+                      />
+                    </AuthWrapper>
+                  </main>
+                </div>
               </div>
+              <MobileNav active={activeView} onNavigate={handleViewChange} />
             </div>
-            <MobileNav active={activeView} onNavigate={handleViewChange} />
+            <SettingsDialog
+              isOpen={settingsOpen}
+              preferences={preferences}
+              onUpdatePreferences={updatePreferences}
+              onClose={() => setSettingsOpen(false)}
+            />
           </div>
-          <SettingsDialog
-            isOpen={settingsOpen}
-            preferences={preferences}
-            onUpdatePreferences={updatePreferences}
-            onClose={() => setSettingsOpen(false)}
-          />
-        </div>
-      </ConvexProvider>
+        </ConvexProvider>
+      </HouseholdUserGate>
     </AccessGate>
   );
 }

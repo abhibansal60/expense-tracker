@@ -1,6 +1,5 @@
 import { Filter, Settings, Sun, Moon } from 'lucide-react';
-import { useQuery } from 'convex/react';
-import { api } from '../../convex/_generated/api';
+import { useHouseholdUser } from './HouseholdUserGate';
 
 interface HeaderProps {
   filtersActive: boolean;
@@ -11,8 +10,8 @@ interface HeaderProps {
 }
 
 export function Header({ filtersActive, onToggleFilters, onOpenSettings, theme, onToggleTheme }: HeaderProps) {
-  const user = useQuery(api.users.getCurrentUser);
-  const displayName = user?.name || 'Demo User';
+  const { user } = useHouseholdUser();
+  const displayName = user.name;
   const initials = displayName
     .split(' ')
     .filter(Boolean)
