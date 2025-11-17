@@ -12,11 +12,12 @@ Convex stays in the stack because it directly solves the core product requiremen
 Given those benefits, removing Convex would require rebuilding auth, data access, and realtime primitives ourselves, so we keep it.
 
 ## Features
-- Google-based authentication with gated routes (`AuthWrapper`) plus an optional passphrase gate for private deployments.
+- Local household profile picker stored per-device, plus an optional passphrase gate for private deployments.
 - Expense CRUD with categories, accounts, and type (income vs expense).
 - Filterable expense list (category, type, date range) with contextual metadata.
 - Monthly summary cards showing totals, net position, and category breakdowns.
 - Default category seeding via Convex mutations.
+- Light/dark theme toggle that follows system preference by default and remembers manual choices.
 
 ## Tech stack
 | Layer | Tech |
@@ -116,11 +117,8 @@ Cloudflare Pages can build the Vite site out of the box. The Convex backend rema
 - **budgets** and **importJobs**: defined in `schema.ts` for future budgeting/import flows.
 
 ## Onboarding & auth flow
-- `App.tsx` wires `ConvexProvider` + `ConvexAuthProvider` around the tree.
-- `AuthWrapper` reads `api.users.getCurrentUser` via `useQuery` to gate content:
-  - `undefined` → loading spinner while auth resolves
-  - `null` → Google sign-in CTA
-  - user object → renders the tracker UI
+- `App.tsx` wraps the UI in `AccessGate` (optional passphrase) and `HouseholdUserGate` (local profile picker) before the `ConvexProvider` mounts.
+- `AuthWrapper` calls `api.users.syncCurrentUser` with the selected household profile so Convex has a matching `users` document; there is no Google sign-in screen wired up yet even though the backend is configured for it.
 - `ExpenseForm`/`ExpenseList` call Convex queries/mutations via the generated `api` client for real-time updates.
 
 See `ARCHITECTURE.md` for system diagrams if you need a deeper architectural reference.
