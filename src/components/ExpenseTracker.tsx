@@ -42,14 +42,23 @@ export function ExpenseTracker({
   const { user } = useHouseholdUser();
   const processRecurring = useMutation(api.recurring.processRecurringEntries);
 
-  useEffect(() => {
-    if (!selectedMonth && availableMonths.length > 0) {
-      setSelectedMonth(availableMonths[0]);
-    }
-  }, [availableMonths, selectedMonth]);
-
   const fallbackMonth = useMemo(() => getCurrentMonth(), []);
-  const monthOptions = availableMonths.length > 0 ? availableMonths : [fallbackMonth];
+  const monthOptions = useMemo(() => {
+    if (availableMonths.length === 0) {
+      return [fallbackMonth];
+    }
+
+    return [...availableMonths].sort(
+      (a, b) => new Date(`${b}-01`).getTime() - new Date(`${a}-01`).getTime()
+    );
+  }, [availableMonths, fallbackMonth]);
+
+  useEffect(() => {
+    if (!monthOptions.includes(selectedMonth)) {
+      setSelectedMonth(monthOptions[0]);
+    }
+  }, [monthOptions, selectedMonth]);
+
   const activeMonth = monthOptions.includes(selectedMonth) ? selectedMonth : monthOptions[0];
   const currentIndex = monthOptions.findIndex((value) => value === activeMonth);
 

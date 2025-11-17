@@ -9,6 +9,22 @@ import { AccessGate } from './components/AccessGate';
 import { HouseholdUserGate } from './components/HouseholdUserGate';
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL!);
+const THEME_STORAGE_KEY = 'expense-tracker:theme-preference';
+
+const getPreferredTheme = (): 'light' | 'dark' => {
+  if (typeof window === 'undefined') {
+    return 'dark';
+  }
+
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (stored === 'light' || stored === 'dark') {
+    return stored;
+  }
+
+  const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+  return prefersLight ? 'light' : 'dark';
+};
+
 const buildTimeLabel = (() => {
   const parsedDate = new Date(__BUILD_TIME__);
 
@@ -35,22 +51,50 @@ function App() {
   const [preferences, setPreferences] = useState<ExpenseTrackerPreferences>({
     compactMode: false,
   });
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    if (typeof window !== 'undefined') {
-      return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    }
-    return 'dark';
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => getPreferredTheme());
+  const [hasManualThemeChoice, setHasManualThemeChoice] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return Boolean(window.localStorage.getItem(THEME_STORAGE_KEY));
   });
 
   const toggleFilters = () => setFiltersVisible((prev) => !prev);
   const updatePreferences = (patch: Partial<ExpenseTrackerPreferences>) =>
     setPreferences((prev) => ({ ...prev, ...patch }));
   const handleViewChange = (view: TrackerView) => setActiveView(view);
-  const toggleTheme = () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  const toggleTheme = () => {
+    setTheme((prev) => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(THEME_STORAGE_KEY, next);
+      }
+      return next;
+    });
+    setHasManualThemeChoice(true);
+  };
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+    const handleChange = (event: MediaQueryListEvent) => {
+      if (!hasManualThemeChoice) {
+        setTheme(event.matches ? 'light' : 'dark');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [hasManualThemeChoice]);
 
   return (
     <AccessGate>
