@@ -1,4 +1,5 @@
-import { Filter, Settings, Sun, Moon, UploadCloud, ListChecks, PieChart } from 'lucide-react';
+import { useState } from 'react';
+import { Filter, Settings, Sun, Moon, UploadCloud, ListChecks, PieChart, Menu } from 'lucide-react';
 import { useHouseholdUser } from './HouseholdUserGate';
 import type { TrackerView } from './ExpenseTracker';
 
@@ -21,6 +22,7 @@ export function Header({
   activeView,
   onChangeView,
 }: HeaderProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const { user } = useHouseholdUser();
   const displayName = user.name;
   const initials = displayName
@@ -38,12 +40,9 @@ export function Header({
 
   return (
     <header className="app-navbar" data-section="home">
-      <div className="app-navbar__brand" aria-label={`Signed in as ${displayName}`}>
+      <div className="app-navbar__brand" aria-label="Expense Tracker home">
         <div className="app-navbar__avatar">{initials || 'ET'}</div>
-        <div>
-          <p className="app-navbar__eyebrow">Working as {displayName}</p>
-          <div className="app-navbar__title">Expense Tracker</div>
-        </div>
+        <div className="app-navbar__title">Expense Tracker</div>
       </div>
 
       <div className="app-navbar__tabs" role="tablist" aria-label="Expense tracker views">
@@ -70,20 +69,54 @@ export function Header({
       </div>
 
       <div className="app-navbar__actions">
-        <button
-          className={`pill-button ${filtersActive ? 'pill-button--active' : ''}`}
-          onClick={onToggleFilters}
-        >
-          <Filter size={18} />
-          Filters
-        </button>
-        <button className="pill-button" onClick={onOpenSettings}>
-          <Settings size={18} />
-          Settings
-        </button>
         <button className="pill-button icon-only" onClick={onToggleTheme} title="Toggle theme">
           {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
         </button>
+        <div className="app-navbar__menu">
+          <button
+            className={`pill-button icon-only ${menuOpen ? 'pill-button--active' : ''}`}
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-expanded={menuOpen}
+            aria-label="Open quick actions"
+          >
+            <Menu size={18} />
+          </button>
+          {menuOpen ? (
+            <div className="app-navbar__menu-panel" role="menu" aria-label="Account and quick actions">
+              <div className="app-navbar__menu-header">
+                <div className="app-navbar__avatar app-navbar__avatar--small">{initials || 'ET'}</div>
+                <div>
+                  <p className="app-navbar__eyebrow">Working as</p>
+                  <div className="app-navbar__menu-name">{displayName}</div>
+                </div>
+              </div>
+              <div className="app-navbar__menu-actions">
+                <button
+                  className={`pill-button ${filtersActive ? 'pill-button--active' : ''}`}
+                  onClick={() => {
+                    onToggleFilters();
+                    setMenuOpen(false);
+                  }}
+                  role="menuitem"
+                >
+                  <Filter size={18} />
+                  Filters
+                </button>
+                <button
+                  className="pill-button"
+                  onClick={() => {
+                    onOpenSettings();
+                    setMenuOpen(false);
+                  }}
+                  role="menuitem"
+                >
+                  <Settings size={18} />
+                  Settings
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
     </header>
   );
