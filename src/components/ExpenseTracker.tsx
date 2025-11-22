@@ -26,7 +26,6 @@ interface ExpenseTrackerProps {
   onToggleFilters: () => void;
   preferences: ExpenseTrackerPreferences;
   activeView: TrackerView;
-  onChangeView: (view: TrackerView) => void;
 }
 
 export function ExpenseTracker({
@@ -34,7 +33,6 @@ export function ExpenseTracker({
   onToggleFilters,
   preferences,
   activeView,
-  onChangeView,
 }: ExpenseTrackerProps) {
   const [activeSheet, setActiveSheet] = useState<'expense' | 'recurring' | null>(null);
   const [selectedMonth, setSelectedMonth] = useState('');
@@ -121,30 +119,8 @@ export function ExpenseTracker({
     </div>
   );
 
-  const viewTabs: Array<{ id: TrackerView; label: string; helper: string }> = [
-    { id: 'overview', label: 'Overview', helper: 'Insights' },
-    { id: 'activity', label: 'Activity', helper: 'Manual + timeline' },
-    { id: 'import', label: 'Bridge', helper: 'CSV workflows' },
-  ];
-
   return (
     <div className="screen-stack tracker-stack">
-      <div className="view-tabs" role="tablist">
-        {viewTabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`view-tabs__item ${activeView === tab.id ? 'view-tabs__item--active' : ''}`}
-            type="button"
-            onClick={() => onChangeView(tab.id)}
-            role="tab"
-            aria-selected={activeView === tab.id}
-          >
-            <span>{tab.label}</span>
-            <small>{tab.helper}</small>
-          </button>
-        ))}
-      </div>
-
       {activeView === 'overview' && <MonthlySummary month={activeMonth} actions={monthActions} />}
 
       {activeView === 'activity' && (

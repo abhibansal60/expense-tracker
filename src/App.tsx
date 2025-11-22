@@ -111,6 +111,8 @@ function App() {
                     onOpenSettings={() => setSettingsOpen(true)}
                     theme={theme}
                     onToggleTheme={toggleTheme}
+                    activeView={activeView}
+                    onChangeView={handleViewChange}
                   />
                   <main className="screen" role="main">
                     <AuthWrapper>
@@ -119,13 +121,19 @@ function App() {
                         onToggleFilters={toggleFilters}
                         preferences={preferences}
                         activeView={activeView}
-                        onChangeView={handleViewChange}
                       />
                     </AuthWrapper>
                   </main>
                 </div>
                 <footer className="version-footer" aria-label="Application version information">
-                  <div>
+                  <div className="version-footer__group" aria-label="Workspace status">
+                    <div className="version-footer__label">Workspace</div>
+                    <div className="version-footer__meta version-footer__status">
+                      <span className="status-dot" aria-hidden="true" />
+                      <span>Guest workspace synced</span>
+                    </div>
+                  </div>
+                  <div className="version-footer__group" aria-label="Build metadata">
                     <div className="version-footer__label">App version</div>
                     <div className="version-footer__meta">
                       {buildTimeLabel ? `Built ${buildTimeLabel}` : 'Build time unavailable'}
