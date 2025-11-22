@@ -1,7 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import packageJson from './package.json' assert { type: 'json' }
 
-const appVersion = process.env.npm_package_version ?? '0.0.0-dev'
+const appVersion =
+  process.env.APP_VERSION ??
+  process.env.npm_package_version ??
+  packageJson.version ??
+  '0.0.0-dev'
 const buildTimestamp = new Date().toISOString()
 
 // https://vite.dev/config/
