@@ -126,20 +126,16 @@ function App() {
                   </main>
                 </div>
                 <footer className="version-footer" aria-label="Application version information">
-                  <div className="version-footer__group" aria-label="Workspace status">
-                    <div className="version-footer__label">Workspace</div>
-                    <div className="version-footer__meta version-footer__status">
-                      <span className="status-dot" aria-hidden="true" />
-                      <span>Guest workspace synced</span>
-                    </div>
+                  <div className="version-footer__item version-footer__status" aria-label="Workspace status">
+                    <span className="status-dot" aria-hidden="true" />
+                    <span>Guest workspace synced</span>
                   </div>
-                  <div className="version-footer__group" aria-label="Build metadata">
-                    <div className="version-footer__label">App version</div>
-                    <div className="version-footer__meta">
-                      {buildTimeLabel ? `Built ${buildTimeLabel}` : 'Build time unavailable'}
-                    </div>
+                  <span className="version-footer__separator" aria-hidden="true">•</span>
+                  <div className="version-footer__item" aria-label="Build metadata">
+                    {buildTimeLabel ? `Built ${buildTimeLabel}` : 'Build time unavailable'}
                   </div>
-                  <span className="version-footer__value">{__APP_VERSION__}</span>
+                  <span className="version-footer__separator" aria-hidden="true">•</span>
+                  <span className="version-footer__value" aria-label="Application version">v{__APP_VERSION__}</span>
                 </footer>
               </div>
               <MobileNav active={activeView} onNavigate={handleViewChange} />
