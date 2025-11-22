@@ -4,7 +4,7 @@ import type { TrackerView } from './ExpenseTracker';
 const NAV_ITEMS: Array<{ id: TrackerView; label: string; icon: typeof PieChart }> = [
   { id: 'overview', label: 'Overview', icon: PieChart },
   { id: 'activity', label: 'Activity', icon: ListChecks },
-  { id: 'import', label: 'Import', icon: UploadCloud },
+  { id: 'import', label: 'Bridge', icon: UploadCloud },
 ];
 
 interface MobileNavProps {
