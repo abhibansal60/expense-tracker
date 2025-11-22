@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { Filter, Settings, Sun, Moon, UploadCloud, ListChecks, PieChart, Menu } from 'lucide-react';
+import {
+  Filter,
+  Settings,
+  Sun,
+  Moon,
+  UploadCloud,
+  ListChecks,
+  PieChart,
+  Menu,
+  UserCircle2,
+} from 'lucide-react';
 import { useHouseholdUser } from './HouseholdUserGate';
 import type { TrackerView } from './ExpenseTracker';
 
@@ -23,7 +33,7 @@ export function Header({
   onChangeView,
 }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const { user } = useHouseholdUser();
+  const { user, clearUser } = useHouseholdUser();
   const displayName = user.name;
   const initials = displayName
     .split(' ')
@@ -112,6 +122,17 @@ export function Header({
                 >
                   <Settings size={18} />
                   Settings
+                </button>
+                <button
+                  className="pill-button"
+                  onClick={() => {
+                    clearUser();
+                    setMenuOpen(false);
+                  }}
+                  role="menuitem"
+                >
+                  <UserCircle2 size={18} />
+                  Switch profile
                 </button>
               </div>
             </div>
