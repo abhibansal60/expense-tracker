@@ -18,50 +18,10 @@
   --bridge-surface: #0f172a;
   --bridge-text: #f8fafc;
   --pill-bg: rgba(15, 23, 42, 0.04);
-  --pill-border: rgba(15, 23, 42, 0.15);
   --pill-text: var(--text-primary);
   --nav-bg: rgba(255, 255, 255, 0.95);
   --nav-border: rgba(15, 23, 42, 0.08);
   --nav-muted: rgba(15, 23, 42, 0.55);
-  --highlight-bg-owner: #ecebff;
-  --highlight-bg-insights: #e0f2fe;
-  --highlight-bg-bridge: #fef3c7;
-  --highlight-text-strong: #1e1b4b;
-}
-
-:root[data-theme='dark'] {
-  color-scheme: dark;
-  --app-bg: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.3), transparent 55%),
-    radial-gradient(circle at 80% 0%, rgba(8, 145, 178, 0.25), transparent 60%), #020614;
-  --frame-bg: rgba(6, 9, 22, 0.8);
-  --surface: rgba(15, 23, 42, 0.92);
-  --surface-alt: rgba(15, 23, 42, 0.6);
-  --text-primary: #f8fafc;
-  --text-muted: rgba(226, 232, 240, 0.7);
-  --hero-text: #f8fafc;
-  --border-soft: rgba(148, 163, 184, 0.2);
-  --shadow-soft: 0 20px 45px rgba(2, 6, 23, 0.6);
-  --shadow-elevated: 0 30px 70px rgba(2, 6, 23, 0.7);
-  --bridge-surface: rgba(5, 7, 18, 0.92);
-  --bridge-text: #f8fafc;
-  --pill-bg: rgba(255, 255, 255, 0.05);
-  --pill-border: rgba(255, 255, 255, 0.2);
-  --pill-text: #fff;
-  --nav-bg: rgba(5, 7, 18, 0.9);
-  --nav-border: rgba(255, 255, 255, 0.08);
-  --nav-muted: rgba(248, 250, 252, 0.65);
-  --accent-soft: rgba(99, 102, 241, 0.28);
-  --primary-500: #818cf8;
-  --primary-600: #a5b4fc;
-  --highlight-bg-owner: rgba(99, 102, 241, 0.25);
-  --highlight-bg-insights: rgba(14, 165, 233, 0.18);
-  --highlight-bg-bridge: rgba(251, 191, 36, 0.2);
-  --highlight-text-strong: #f8fafc;
-}
-
-/* Basic Reset and Styles */
-body {
-  margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
@@ -72,16 +32,63 @@ body {
   min-height: 100vh;
 }
 
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  /* Deep Carbon Palette - Inspired by Linear/Vercel */
+  --app-bg: #09090b;
+  /* Zinc 950 */
+  --frame-bg: #09090b;
+  /* Zinc 950 */
+  --surface: #18181b;
+  /* Zinc 900 */
+  --surface-alt: #27272a;
+  /* Zinc 800 */
+
+  --text-primary: #ffffff;
+  /* White */
+  --text-muted: #a1a1aa;
+  /* Zinc 400 */
+  --hero-text: #ffffff;
+
+  --border-soft: #27272a;
+  /* Zinc 800 - Sharp borders */
+
+  /* Shadows - Very subtle, relying more on borders */
+  --shadow-soft: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-elevated: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+
+  --bridge-surface: #09090b;
+  --bridge-text: #ffffff;
+
+  /* Pills & Badges */
+  --pill-bg: rgba(255, 255, 255, 0.08);
+  --pill-border: rgba(255, 255, 255, 0.12);
+  --pill-text: #f4f4f5;
+
+  --nav-bg: rgba(9, 9, 11, 0.85);
+  --nav-border: rgba(255, 255, 255, 0.08);
+  --nav-muted: #a1a1aa;
+
+  /* Accents - Vivid Indigo/Violet popping against black */
+  --accent: #6366f1;
+  /* Indigo 500 */
+  --accent-strong: #818cf8;
+  /* Indigo 400 */
+  --accent-soft: rgba(99, 102, 241, 0.15);
+
+  --primary-500: #6366f1;
+  --primary-600: #818cf8;
+
+  /* Highlights */
+  --highlight-bg-owner: rgba(99, 102, 241, 0.15);
+  --highlight-bg-insights: rgba(14, 165, 233, 0.15);
+  --highlight-bg-bridge: rgba(251, 191, 36, 0.15);
+  --highlight-text-strong: #ffffff;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
-}
-
-/* Basic Utility Classes */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 24px;
 }
 
 .card {
@@ -519,11 +526,11 @@ code {
   border-radius: 50%;
 }
 
-.switch input:checked + .slider {
+.switch input:checked+.slider {
   background-color: rgba(99, 102, 241, 0.8);
 }
 
-.switch input:checked + .slider:before {
+.switch input:checked+.slider:before {
   transform: translateX(18px);
 }
 
@@ -664,19 +671,19 @@ code {
   justify-content: space-between;
 }
 
-.space-y-6 > * + * {
+.space-y-6>*+* {
   margin-top: 24px;
 }
 
-.space-y-4 > * + * {
+.space-y-4>*+* {
   margin-top: 16px;
 }
 
-.space-x-2 > * + * {
+.space-x-2>*+* {
   margin-left: 8px;
 }
 
-.space-x-4 > * + * {
+.space-x-4>*+* {
   margin-left: 16px;
 }
 
@@ -745,11 +752,11 @@ code {
   gap: 16px;
 }
 
-.space-y-0 > * + * {
+.space-y-0>*+* {
   margin-top: 0;
 }
 
-.space-y-3 > * + * {
+.space-y-3>*+* {
   margin-top: 12px;
 }
 
@@ -1025,21 +1032,21 @@ code {
 }
 
 /* Mobile-first refresh */
- .app-shell {
-   width: 100%;
-   min-height: 100vh;
-   padding: 24px;
-   display: flex;
-   justify-content: center;
-   align-items: flex-start;
-   background: transparent;
- }
+.app-shell {
+  width: 100%;
+  min-height: 100vh;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: transparent;
+}
 
- @media (max-width: 540px) {
-   .app-shell {
-     padding: 0;
-   }
- }
+@media (max-width: 540px) {
+  .app-shell {
+    padding: 0;
+  }
+}
 
 .mobile-frame {
   position: relative;
@@ -1380,9 +1387,11 @@ code {
 .expense-row {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  /* Align center for better look with single line */
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  /* Prevent wrapping */
 }
 
 .expense-title {
@@ -1390,10 +1399,18 @@ code {
   color: var(--text-primary);
   margin: 0;
   font-size: 15px;
+  /* Truncate text if it's too long */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .expense-amount {
   font-weight: 700;
+  white-space: nowrap;
+  /* Never wrap the amount */
+  flex-shrink: 0;
+  /* Never shrink the amount */
 }
 
 .expense-amount.income {
@@ -1567,77 +1584,33 @@ code {
   border-radius: 18px;
   background: rgba(15, 23, 42, 0.02);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: flex-start;
-  gap: 16px;
-}
 
-.summary-card > div:first-of-type {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.summary-value {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 6px 0;
-  overflow-wrap: anywhere;
-}
-
-.summary-value.positive {
-  color: #16a34a;
-}
-
-.summary-value.negative {
-  color: #dc2626;
-}
-
-.summary-value.accent {
-  color: var(--accent);
-}
-
-.summary-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(15, 23, 42, 0.06);
-  flex-shrink: 0;
-  justify-self: end;
-}
-
-.summary-icon.positive {
-  background: rgba(16, 185, 129, 0.15);
-  color: #047857;
-}
-
-.summary-icon.negative {
-  background: rgba(248, 113, 113, 0.2);
-  color: #b91c1c;
-}
-
-.summary-icon.accent {
-  background: rgba(79, 70, 229, 0.15);
-  color: var(--accent);
-}
-
-@media (max-width: 480px) {
-  .summary-card {
-    grid-template-columns: 1fr;
+  .summary-value.accent {
+    color: var(--accent);
   }
 
   .summary-icon {
-    justify-self: start;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.06);
+    flex-shrink: 0;
+    justify-self: end;
   }
-}
 
-.summary-meta {
-  font-size: 12px;
-  color: var(--text-muted);
+  .summary-icon.positive {
+    background: rgba(16, 185, 129, 0.15);
+    color: #047857;
+  }
+
+  .summary-icon.negative {
+    background: rgba(248, 113, 113, 0.2);
+    color: #b91c1c;
+  }
+
 }
 
 .summary-skeleton {
@@ -1753,7 +1726,7 @@ code {
   overflow: hidden;
 }
 
-.account-meter > div {
+.account-meter>div {
   height: 100%;
   background: linear-gradient(90deg, var(--accent), var(--accent-strong));
 }
@@ -2182,11 +2155,11 @@ code {
     gap: 24px;
   }
 
-.activity-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
-  gap: 24px;
-}
+  .activity-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+    gap: 24px;
+  }
 
   .activity-layout .quick-entry-card {
     position: sticky;
@@ -2272,9 +2245,12 @@ code {
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: .5;
   }
@@ -2287,11 +2263,11 @@ code {
   .grid-cols-4 {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .md\:grid-cols-4 {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .container {
     padding: 0 12px;
   }
