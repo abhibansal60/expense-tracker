@@ -64,33 +64,39 @@ export function AccessGate({ children }: { children: ReactNode }) {
   const isLoading = status === 'checking';
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white px-6">
-      <div className="max-w-md w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 text-center">
-        {isLoading ? (
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-white" aria-label="Checking access" />
-        ) : (
-          <Lock className="mx-auto h-8 w-8 text-white" aria-hidden="true" />
-        )}
-        <h1 className="mt-4 text-2xl font-semibold">Family Access Gate</h1>
-        <p className="mt-2 text-sm text-white/80">
+    <div className="auth-shell">
+      <div className="auth-card">
+        <div className="auth-card__icon">
+          {isLoading ? (
+            <Loader2 className="h-8 w-8 animate-spin" aria-label="Checking access" />
+          ) : (
+            <Lock className="h-8 w-8" aria-hidden="true" />
+          )}
+        </div>
+        <h1 className="auth-card__title">Family Access Gate</h1>
+        <p className="auth-card__subtitle">
           This deployment is private. Enter the shared passphrase to continue.
         </p>
         {!isLoading && (
-          <form onSubmit={handleSubmit} className="mt-6 space-y-3 text-left">
-            <label className="block text-xs uppercase tracking-widest text-white/70">Access phrase</label>
+          <form onSubmit={handleSubmit} className="auth-card__form">
+            <label className="auth-card__label">Access phrase</label>
             <input
               type="password"
-              className="w-full rounded-2xl border border-white/30 bg-white/20 px-4 py-3 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white"
+              className="input-field"
               value={passphrase}
               onChange={(event) => setPassphrase(event.target.value)}
               placeholder="Enter passphrase"
               disabled={submitting}
               autoComplete="off"
             />
-            {error && <p className="text-sm text-rose-200">{error}</p>}
+            {error && (
+              <p className="auth-card__error" role="alert">
+                {error}
+              </p>
+            )}
             <button
               type="submit"
-              className="w-full rounded-2xl bg-white text-slate-900 font-semibold py-3 transition hover:bg-slate-100 disabled:opacity-50"
+              className="btn-primary w-full justify-center"
               disabled={submitting || passphrase.trim().length === 0}
             >
               {submitting ? 'Verifying...' : 'Unlock'}

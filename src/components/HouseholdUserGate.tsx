@@ -76,10 +76,12 @@ export function HouseholdUserGate({ children }: { children: ReactNode }) {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white">
-        <div className="text-center space-y-3">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-white" aria-label="Loading profile" />
-          <p className="text-sm text-white/70">Checking who is using this device...</p>
+      <div className="auth-shell">
+        <div className="auth-card">
+          <div className="auth-card__icon">
+            <Loader2 className="h-8 w-8 animate-spin" aria-label="Loading profile" />
+          </div>
+          <p className="auth-card__subtitle">Checking who is using this device...</p>
         </div>
       </div>
     );
@@ -106,27 +108,30 @@ function ProfilePrompt({ onSelect }: { onSelect: (memberId: HouseholdMemberId) =
   const options = useMemo(() => HOUSEHOLD_MEMBERS, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white px-6">
-      <div className="max-w-md w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-8 text-center space-y-4">
-        <UserCircle2 className="mx-auto h-10 w-10 text-white" aria-hidden="true" />
+    <div className="auth-shell">
+      <div className="auth-card auth-card--stacked">
+        <div className="auth-card__icon">
+          <UserCircle2 className="h-10 w-10" aria-hidden="true" />
+        </div>
         <div>
-          <h1 className="text-2xl font-semibold">Who&apos;s logging expenses?</h1>
-          <p className="text-sm text-white/80">
+          <h1 className="auth-card__title">Who&apos;s logging expenses?</h1>
+          <p className="auth-card__subtitle">
             Pick your name once per device and we&apos;ll tag every entry with it automatically.
           </p>
         </div>
-        <div className="grid gap-3">
+        <div className="auth-card__options">
           {options.map((member) => (
             <button
               key={member.id}
-              className="w-full rounded-2xl border border-white/30 bg-white/10 px-4 py-4 text-lg font-semibold transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="pill-button auth-card__option"
               onClick={() => onSelect(member.id)}
             >
-              {member.name}
+              <span className="auth-card__option-label">{member.name}</span>
+              <span className="auth-card__option-hint">Choose profile</span>
             </button>
           ))}
         </div>
-        <p className="text-xs text-white/70">
+        <p className="auth-card__footnote">
           We store your choice locally so only this device remembers it.
         </p>
       </div>
