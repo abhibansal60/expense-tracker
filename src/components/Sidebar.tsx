@@ -2,8 +2,6 @@ import {
     Filter,
     Settings,
     UploadCloud,
-    ListChecks,
-    PieChart,
     X,
     LogOut,
 } from 'lucide-react';
@@ -31,11 +29,6 @@ export function Sidebar({
 }: SidebarProps) {
     const { user, clearUser } = useHouseholdUser();
     const displayName = user.name;
-
-    const navItems: Array<{ id: TrackerView; label: string; icon: typeof PieChart }> = [
-        { id: 'overview', label: 'Overview', icon: PieChart },
-        { id: 'activity', label: 'Activity', icon: ListChecks },
-    ];
 
     const menuItems = [
         {
@@ -94,33 +87,6 @@ export function Sidebar({
                 </div>
 
                 <div className="flex flex-col gap-4 px-4 py-4">
-                    <div className="space-y-2">
-                        <p className="px-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Navigate</p>
-                        <div className="flex flex-col gap-2">
-                            {navItems.map((item) => {
-                                const Icon = item.icon;
-                                const isActive = activeView === item.id;
-                                return (
-                                    <button
-                                        key={item.id}
-                                        type="button"
-                                        onClick={() => {
-                                            onChangeView(item.id);
-                                            onClose();
-                                        }}
-                                        className={`user-menu__item ${isActive ? 'user-menu__item--active' : ''}`}
-                                        aria-current={isActive ? 'page' : undefined}
-                                    >
-                                        <span className="user-menu__icon" aria-hidden>
-                                            <Icon size={16} />
-                                        </span>
-                                        <span className="user-menu__label">{item.label}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-
                     <div className="space-y-2">
                         <p className="px-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Quick actions</p>
                         <ul className="user-menu__list">

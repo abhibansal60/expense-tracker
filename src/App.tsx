@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ConvexProvider, ConvexReactClient } from 'convex/react';
 import { ExpenseTracker, type ExpenseTrackerPreferences, type TrackerView } from './components/ExpenseTracker';
 import { Header } from './components/Header';
+import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { AuthWrapper } from './components/AuthWrapper';
 import { SettingsDialog } from './components/SettingsDialog';
@@ -109,6 +110,10 @@ function App() {
               onOpenSidebar={() => setSidebarOpen(true)}
               sidebarOpen={sidebarOpen}
             />
+
+            <div className="hidden md:block">
+              <Navbar active={activeView} onNavigate={handleViewChange} />
+            </div>
 
             <Sidebar
               isOpen={sidebarOpen}
