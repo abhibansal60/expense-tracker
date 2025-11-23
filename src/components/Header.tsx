@@ -50,14 +50,14 @@ export function Header({
   return (
     <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 md:px-6">
-        <div className="flex items-center gap-3 rounded-full border border-border/60 bg-muted/70 px-3 py-2 shadow-sm">
+        <div
+          className="flex items-center gap-3 rounded-full border border-border/60 bg-muted/70 px-2.5 py-2 shadow-sm"
+          aria-label="Expense Tracker"
+        >
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 text-primary-foreground font-semibold shadow-lg ring-2 ring-primary/30">
             {initials || 'ET'}
           </div>
-          <div className="hidden sm:flex flex-col justify-center leading-tight">
-            <span className="text-sm font-bold tracking-tight text-foreground">Expense Tracker</span>
-            <span className="text-xs text-muted-foreground">Stay on top of every penny</span>
-          </div>
+          <span className="sr-only">Expense Tracker</span>
         </div>
 
         <div className="hidden md:flex items-center gap-2 rounded-full border border-border/70 bg-background/80 p-1.5 shadow-sm">
