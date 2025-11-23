@@ -1,9 +1,10 @@
 import { useState, useMemo, type Dispatch, type SetStateAction } from 'react';
-import { usePaginatedQuery, useQuery } from 'convex/react';
+import { usePaginatedQuery, useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import type { Doc, Id } from '../../convex/_generated/dataModel';
-import { Filter, Calendar, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Filter, Calendar, TrendingDown, TrendingUp, AlertTriangle, Edit, Trash2 } from 'lucide-react';
 import { QueryErrorBoundary } from './QueryErrorBoundary';
+import { useHouseholdUser } from './HouseholdUserGate';
 
 type ExpenseFilters = {
   category: '' | Id<'categories'>;
@@ -284,6 +285,26 @@ function ExpenseFeed({
   emptyTitle?: string;
   emptyDescription?: string;
 }) {
+  const { user } = useHouseholdUser();
+  const deleteExpense = useMutation(api.expenses.deleteExpense);
+  const [deletingId, setDeletingId] = useState<Id<'expenses'> | null>(null);
+
+  const handleDelete = async (expenseId: Id<'expenses'>) => {
+    if (!confirm('Are you sure you want to delete this expense?')) {
+      return;
+    }
+
+    setDeletingId(expenseId);
+    try {
+      await deleteExpense({ id: expenseId, memberId: user.id });
+    } catch (error) {
+      console.error('Failed to delete expense:', error);
+      alert('Failed to delete expense. Please try again.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className={`expense-feed ${compactMode ? 'expense-feed--compact' : ''}`}>
       {isLoading ? (
@@ -301,8 +322,10 @@ function ExpenseFeed({
       ) : (
         expenses.map((expense) => {
           const sourceMeta = getSourceMeta(expense.source as 'manual' | 'monzo' | 'import');
+          const isDeleting = deletingId === expense._id;
+
           return (
-            <div key={expense._id} className="expense-item">
+            <div key={expense._id} className={`expense-item ${isDeleting ? 'expense-item--deleting' : ''}`}>
               {renderTypeIcon(expense.type)}
               <div className="expense-content">
                 <div className="expense-row">
@@ -323,6 +346,17 @@ function ExpenseFeed({
                   <span>by {expense.userDetails?.name?.split(' ')[0] || 'Unknown'}</span>
                   {expense.merchant && <span>{expense.merchant}</span>}
                 </div>
+              </div>
+              <div className="expense-actions">
+                <button
+                  className="expense-action-btn expense-action-btn--delete"
+                  onClick={() => handleDelete(expense._id)}
+                  disabled={isDeleting}
+                  title="Delete expense"
+                  aria-label="Delete expense"
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
             </div>
           );
