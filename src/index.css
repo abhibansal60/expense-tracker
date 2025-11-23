@@ -1,5 +1,18 @@
 :root {
   color-scheme: light;
+  --background: 248 250 252;
+  --foreground: 15 23 42;
+  --muted: 241 245 249;
+  --muted-foreground: 100 116 139;
+  --border: 226 232 240;
+  --popover: 255 255 255;
+  --popover-foreground: 15 23 42;
+  --ui-accent: 238 242 255;
+  --ui-accent-foreground: 55 48 163;
+  --ui-primary: 99 102 241;
+  --ui-primary-foreground: 255 255 255;
+  --ui-destructive: 239 68 68;
+  --ui-destructive-foreground: 255 255 255;
   --app-bg: radial-gradient(circle at top, #f2f5ff, #e3e7f3);
   --frame-bg: rgba(255, 255, 255, 0.96);
   --surface: #ffffff;
@@ -34,6 +47,19 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
+  --background: 15 23 42;
+  --foreground: 226 232 240;
+  --muted: 39 39 42;
+  --muted-foreground: 161 161 170;
+  --border: 63 63 70;
+  --popover: 24 24 27;
+  --popover-foreground: 226 232 240;
+  --ui-accent: 63 63 70;
+  --ui-accent-foreground: 226 232 240;
+  --ui-primary: 129 140 248;
+  --ui-primary-foreground: 15 23 42;
+  --ui-destructive: 248 113 113;
+  --ui-destructive-foreground: 24 24 27;
   /* Deep Carbon Palette - Inspired by Linear/Vercel */
   --app-bg: #09090b;
   /* Zinc 950 */
@@ -84,6 +110,178 @@
   --highlight-bg-insights: rgba(14, 165, 233, 0.15);
   --highlight-bg-bridge: rgba(251, 191, 36, 0.15);
   --highlight-text-strong: #ffffff;
+}
+
+/* Utility tokens to support the Tailwind-style classes used in React components */
+.bg-background {
+  background-color: rgb(var(--background));
+}
+
+.bg-background\/60 {
+  background-color: rgb(var(--background) / 0.6);
+}
+
+.bg-background\/80 {
+  background-color: rgb(var(--background) / 0.8);
+}
+
+.bg-background\/90 {
+  background-color: rgb(var(--background) / 0.9);
+}
+
+.text-foreground {
+  color: rgb(var(--foreground));
+}
+
+.text-muted-foreground {
+  color: rgb(var(--muted-foreground));
+}
+
+.bg-muted {
+  background-color: rgb(var(--muted));
+}
+
+.bg-muted\/70 {
+  background-color: rgb(var(--muted) / 0.7);
+}
+
+.border-border {
+  border-color: rgb(var(--border));
+}
+
+.border-border\/50 {
+  border-color: rgb(var(--border) / 0.5);
+}
+
+.border-border\/60 {
+  border-color: rgb(var(--border) / 0.6);
+}
+
+.border-border\/70 {
+  border-color: rgb(var(--border) / 0.7);
+}
+
+.bg-popover {
+  background-color: rgb(var(--popover));
+}
+
+.text-popover-foreground {
+  color: rgb(var(--popover-foreground));
+}
+
+.bg-accent {
+  background-color: rgb(var(--ui-accent));
+}
+
+.bg-accent\/50 {
+  background-color: rgb(var(--ui-accent) / 0.5);
+}
+
+.text-accent-foreground {
+  color: rgb(var(--ui-accent-foreground));
+}
+
+.text-primary-foreground {
+  color: rgb(var(--ui-primary-foreground));
+}
+
+.text-primary {
+  color: rgb(var(--ui-primary));
+}
+
+.bg-gradient-to-br {
+  --tw-gradient-stops: initial;
+  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
+}
+
+.from-primary {
+  --tw-gradient-from: rgb(var(--ui-primary));
+  --tw-gradient-to: rgb(var(--ui-primary) / 0);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.via-primary\/90 {
+  --tw-gradient-stops: var(--tw-gradient-from),
+    rgb(var(--ui-primary) / 0.9),
+    var(--tw-gradient-to, rgb(var(--ui-primary) / 0));
+}
+
+.to-primary\/70 {
+  --tw-gradient-to: rgb(var(--ui-primary) / 0.7);
+}
+
+.ring-2 {
+  box-shadow: 0 0 0 2px var(--tw-ring-color, transparent);
+}
+
+.ring-primary\/20 {
+  --tw-ring-color: rgb(var(--ui-primary) / 0.2);
+}
+
+.ring-primary\/30 {
+  --tw-ring-color: rgb(var(--ui-primary) / 0.3);
+}
+
+.hover\:border-primary\/30:hover {
+  border-color: rgb(var(--ui-primary) / 0.3);
+}
+
+.hover\:bg-muted\/70:hover {
+  background-color: rgb(var(--muted) / 0.7);
+}
+
+.hover\:text-foreground:hover {
+  color: rgb(var(--foreground));
+}
+
+.focus\:ring-2:focus-visible {
+  box-shadow: 0 0 0 2px var(--tw-ring-color, transparent);
+}
+
+.focus\:ring-primary\/20:focus-visible {
+  --tw-ring-color: rgb(var(--ui-primary) / 0.2);
+}
+
+.hover\:bg-accent:hover {
+  background-color: rgb(var(--ui-accent));
+}
+
+.hover\:text-accent-foreground:hover {
+  color: rgb(var(--ui-accent-foreground));
+}
+
+.hover\:bg-destructive\/10:hover {
+  background-color: rgb(var(--ui-destructive) / 0.1);
+}
+
+.hover\:text-destructive:hover {
+  color: rgb(var(--ui-destructive));
+}
+
+.focus\:bg-destructive\/10:focus-visible {
+  background-color: rgb(var(--ui-destructive) / 0.1);
+}
+
+.focus\:text-destructive:focus-visible {
+  color: rgb(var(--ui-destructive));
+}
+
+.selection\:bg-primary\/10::selection {
+  background-color: rgb(var(--ui-primary) / 0.1);
+}
+
+.selection\:text-primary::selection {
+  color: rgb(var(--ui-primary));
+}
+
+.backdrop-blur-md {
+  backdrop-filter: blur(12px);
+}
+
+@supports (backdrop-filter: blur(0)) {
+  .supports-\[backdrop-filter\]\:bg-background\/60 {
+    background-color: rgb(var(--background) / 0.6);
+  }
 }
 
 code {
