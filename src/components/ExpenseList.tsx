@@ -5,6 +5,7 @@ import type { Doc, Id } from '../../convex/_generated/dataModel';
 import { Filter, Calendar, TrendingDown, TrendingUp, AlertTriangle, Edit, Trash2 } from 'lucide-react';
 import { QueryErrorBoundary } from './QueryErrorBoundary';
 import { useHouseholdUser } from './HouseholdUserGate';
+import { ExpenseForm } from './ExpenseForm';
 
 type ExpenseFilters = {
   category: '' | Id<'categories'>;
@@ -288,6 +289,7 @@ function ExpenseFeed({
   const { user } = useHouseholdUser();
   const deleteExpense = useMutation(api.expenses.deleteExpense);
   const [deletingId, setDeletingId] = useState<Id<'expenses'> | null>(null);
+  const [editingExpense, setEditingExpense] = useState<ExpenseListItem | null>(null);
 
   const handleDelete = async (expenseId: Id<'expenses'>) => {
     if (!confirm('Are you sure you want to delete this expense?')) {
@@ -306,63 +308,86 @@ function ExpenseFeed({
   };
 
   return (
-    <div className={`expense-feed ${compactMode ? 'expense-feed--compact' : ''}`}>
-      {isLoading ? (
-        <div className="empty-feed">
-          <Calendar className="h-10 w-10" />
-          <p>{loadingTitle}</p>
-          <p className="text-sm text-gray-500">{loadingDescription}</p>
-        </div>
-      ) : expenses.length === 0 ? (
-        <div className="empty-feed">
-          <Calendar className="h-10 w-10" />
-          <p>{emptyTitle}</p>
-          <p className="text-sm text-gray-500">{emptyDescription}</p>
-        </div>
-      ) : (
-        expenses.map((expense) => {
-          const sourceMeta = getSourceMeta(expense.source as 'manual' | 'monzo' | 'import');
-          const isDeleting = deletingId === expense._id;
+    <>
+      <div className={`expense-feed ${compactMode ? 'expense-feed--compact' : ''}`}>
+        {isLoading ? (
+          <div className="empty-feed">
+            <Calendar className="h-10 w-10" />
+            <p>{loadingTitle}</p>
+            <p className="text-sm text-gray-500">{loadingDescription}</p>
+          </div>
+        ) : expenses.length === 0 ? (
+          <div className="empty-feed">
+            <Calendar className="h-10 w-10" />
+            <p>{emptyTitle}</p>
+            <p className="text-sm text-gray-500">{emptyDescription}</p>
+          </div>
+        ) : (
+          expenses.map((expense) => {
+            const sourceMeta = getSourceMeta(expense.source as 'manual' | 'monzo' | 'import');
+            const isDeleting = deletingId === expense._id;
 
-          return (
-            <div key={expense._id} className={`expense-item ${isDeleting ? 'expense-item--deleting' : ''}`}>
-              {renderTypeIcon(expense.type)}
-              <div className="expense-content">
-                <div className="expense-row">
-                  <p className="expense-title">{expense.description}</p>
-                  <p className={`expense-amount ${expense.type === 'income' ? 'income' : 'expense'}`}>
-                    {formatAmount(expense.amount, expense.type)}
-                  </p>
+            return (
+              <div key={expense._id} className={`expense-item ${isDeleting ? 'expense-item--deleting' : ''}`}>
+                {renderTypeIcon(expense.type)}
+                <div className="expense-content">
+                  <div className="expense-row">
+                    <p className="expense-title">{expense.description}</p>
+                    <p className={`expense-amount ${expense.type === 'income' ? 'income' : 'expense'}`}>
+                      {formatAmount(expense.amount, expense.type)}
+                    </p>
+                  </div>
+                  <div className="expense-meta">
+                    <span>
+                      {expense.categoryDetails?.emoji} {expense.categoryDetails?.name}
+                    </span>
+                    <span>{expense.account}</span>
+                    <span>{formatDate(expense.date)}</span>
+                  </div>
+                  <div className="expense-meta">
+                    <span className={sourceMeta.className}>{sourceMeta.label}</span>
+                    <span>by {expense.userDetails?.name?.split(' ')[0] || 'Unknown'}</span>
+                    {expense.merchant && <span>{expense.merchant}</span>}
+                  </div>
                 </div>
-                <div className="expense-meta">
-                  <span>
-                    {expense.categoryDetails?.emoji} {expense.categoryDetails?.name}
-                  </span>
-                  <span>{expense.account}</span>
-                  <span>{formatDate(expense.date)}</span>
-                </div>
-                <div className="expense-meta">
-                  <span className={sourceMeta.className}>{sourceMeta.label}</span>
-                  <span>by {expense.userDetails?.name?.split(' ')[0] || 'Unknown'}</span>
-                  {expense.merchant && <span>{expense.merchant}</span>}
+                <div className="expense-actions">
+                  <button
+                    className="expense-action-btn"
+                    onClick={() => setEditingExpense(expense)}
+                    disabled={isDeleting}
+                    title="Edit expense"
+                    aria-label="Edit expense"
+                  >
+                    <Edit size={16} />
+                  </button>
+                  <button
+                    className="expense-action-btn expense-action-btn--delete"
+                    onClick={() => handleDelete(expense._id)}
+                    disabled={isDeleting}
+                    title="Delete expense"
+                    aria-label="Delete expense"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
-              <div className="expense-actions">
-                <button
-                  className="expense-action-btn expense-action-btn--delete"
-                  onClick={() => handleDelete(expense._id)}
-                  disabled={isDeleting}
-                  title="Delete expense"
-                  aria-label="Delete expense"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          );
-        })
+            );
+          })
+        )}
+      </div>
+
+      {editingExpense && (
+        <div className="sheet-overlay" role="dialog" aria-modal="true">
+          <div className="sheet-panel">
+            <ExpenseForm
+              initialData={editingExpense}
+              onSuccess={() => setEditingExpense(null)}
+              onCancel={() => setEditingExpense(null)}
+            />
+          </div>
+        </div>
       )}
-    </div>
+    </>
   );
 }
 
