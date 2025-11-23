@@ -27,6 +27,11 @@ These notes keep the React/Convex stack healthy and reduce review churn. The sco
 - When adding or changing Convex functions, update `convex/schema.ts` as needed and regenerate types with `npx convex codegen`.
 - Prefer small, focused commits with descriptive messages; keep diffs minimal and scoped to the change set.
 
+## Versioning & release notes
+- Bump the package version in both `package.json` and `package-lock.json` with `npm version <patch|minor|major> --no-git-tag-version` whenever a user-facing change ships.
+- Record significant commits in `CHANGELOG.md`, adding a new entry under the corresponding version with a short, user-visible summary and date.
+- Keep changelog entries descriptive enough that readers can understand the impact without reading the diff.
+
 ## Pull request expectations
 - Include file-level citations referencing the touched files/line ranges when summarizing changes.
 - Mention every manual test or script you ran (even if failing due to known baseline issues) and explain failures.
