@@ -181,7 +181,8 @@ export const getMonthlyTrends = query({
 
     for (const expense of expenses) {
       const monthKey = expense.date?.slice(0, 7);
-      if (!monthKey) continue;
+      // Validate format YYYY-MM
+      if (!monthKey || !/^\d{4}-\d{2}$/.test(monthKey)) continue;
 
       const totals = monthTotals.get(monthKey) ?? { income: 0, expense: 0 };
       const bucket = expense.type === "income" ? "income" : "expense";
@@ -193,7 +194,11 @@ export const getMonthlyTrends = query({
     }
 
     const sortedMonths = Array.from(monthTotals.keys()).sort(
-      (a, b) => new Date(`${a}-01`).getTime() - new Date(`${b}-01`).getTime()
+      (a, b) => {
+        const dateA = new Date(`${a}-01`).getTime();
+        const dateB = new Date(`${b}-01`).getTime();
+        return dateA - dateB;
+      }
     );
 
     const limit = args.limitMonths && args.limitMonths > 0 ? args.limitMonths : undefined;
@@ -284,7 +289,7 @@ export const addExpense = mutation({
       originalCategory: rest.originalCategory,
       recurringEntry: rest.recurringEntry,
     });
-    
+
     return expenseId;
   },
 });
@@ -469,7 +474,7 @@ export const updateExpense = mutation({
       type: updates.type ?? existing.type,
     });
     await ctx.db.patch(id, { ...updates, dedupeKey });
-    
+
     return id;
   },
 });
