@@ -50,15 +50,18 @@ export function Header({
   return (
     <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-4 md:px-8">
-        <div className="flex items-center gap-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold shadow-sm ring-1 ring-primary/20">
+        <div className="flex items-center gap-3 rounded-full border border-border/60 bg-muted/60 px-3 py-2 shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 text-primary-foreground font-semibold shadow-lg ring-2 ring-primary/30">
             {initials || 'ET'}
+          </div>
+          <div className="hidden sm:flex flex-col leading-tight">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Expense tracker</span>
+            <span className="text-sm font-semibold text-foreground">{displayName}</span>
           </div>
         </div>
 
         <div
-          className="hidden md:flex items-center gap-1 p-1 bg-muted/50 rounded-full border border-border/50 w-auto min-w-fit"
-          style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap' }}
+          className="hidden md:flex items-center gap-1 rounded-full border border-border/60 bg-muted/60 p-1 shadow-sm"
         >
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -68,15 +71,25 @@ export function Header({
                 key={item.id}
                 onClick={() => onChangeView(item.id)}
                 className={`
-                  relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 ease-out
+                  group relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 ease-out
                   ${isActive
-                    ? 'bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                    ? 'bg-gradient-to-r from-primary/15 via-primary/10 to-primary/5 text-primary shadow-[0_10px_30px_-18px_rgba(59,130,246,0.6)] ring-1 ring-primary/25'
+                    : 'text-muted-foreground hover:-translate-y-0.5 hover:text-foreground hover:bg-background/60'
                   }
                 `}
+                aria-current={isActive ? 'page' : undefined}
               >
-                <Icon size={16} className={`transition-colors ${isActive ? 'text-primary' : ''}`} />
-                <span>{item.label}</span>
+                <span
+                  className={`absolute inset-0 rounded-full border border-transparent transition-colors ${
+                    isActive ? 'border-primary/30' : 'border-border/40 group-hover:border-border'
+                  }`}
+                  aria-hidden
+                />
+                <Icon
+                  size={16}
+                  className={`relative transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`}
+                />
+                <span className="relative">{item.label}</span>
               </button>
             );
           })}
