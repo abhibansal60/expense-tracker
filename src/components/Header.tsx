@@ -54,14 +54,14 @@ export function Header({
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 text-primary-foreground font-semibold shadow-lg ring-2 ring-primary/30">
             {initials || 'ET'}
           </div>
-          <div className="hidden sm:flex flex-col leading-tight">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Expense tracker</span>
-            <span className="text-sm font-semibold text-foreground">{displayName}</span>
+          <div className="hidden sm:flex flex-col leading-tight justify-center">
+            <span className="text-sm font-bold tracking-tight text-foreground">Expense Tracker</span>
           </div>
         </div>
 
         <div
-          className="hidden md:flex items-center gap-1 rounded-full border border-border/60 bg-muted/60 p-1 shadow-sm"
+          className="hidden md:flex items-center gap-1 rounded-full border border-border/60 bg-muted/60 p-1 shadow-sm w-auto min-w-fit"
+          style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap' }}
         >
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -80,9 +80,8 @@ export function Header({
                 aria-current={isActive ? 'page' : undefined}
               >
                 <span
-                  className={`absolute inset-0 rounded-full border border-transparent transition-colors ${
-                    isActive ? 'border-primary/30' : 'border-border/40 group-hover:border-border'
-                  }`}
+                  className={`absolute inset-0 rounded-full border border-transparent transition-colors ${isActive ? 'border-primary/30' : 'border-border/40 group-hover:border-border'
+                    }`}
                   aria-hidden
                 />
                 <Icon
