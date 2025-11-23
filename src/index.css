@@ -1604,6 +1604,21 @@ code {
   background: rgba(15, 23, 42, 0.02);
   display: grid;
 
+  .summary-value {
+    margin: 6px 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .summary-value.positive {
+    color: #047857;
+  }
+
+  .summary-value.negative {
+    color: #b91c1c;
+  }
+
   .summary-value.accent {
     color: var(--accent);
   }
