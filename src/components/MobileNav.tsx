@@ -1,10 +1,9 @@
-import { PieChart, ListChecks, UploadCloud } from 'lucide-react';
+import { PieChart, ListChecks } from 'lucide-react';
 import type { TrackerView } from './ExpenseTracker';
 
 const NAV_ITEMS: Array<{ id: TrackerView; label: string; icon: typeof PieChart }> = [
   { id: 'overview', label: 'Overview', icon: PieChart },
   { id: 'activity', label: 'Activity', icon: ListChecks },
-  { id: 'import', label: 'Bridge', icon: UploadCloud },
 ];
 
 interface MobileNavProps {
@@ -14,7 +13,7 @@ interface MobileNavProps {
 
 export function MobileNav({ active, onNavigate }: MobileNavProps) {
   return (
-    <nav className="mobile-nav" aria-label="Primary navigation">
+    <nav className="mobile-nav md:hidden" aria-label="Primary navigation">
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         const isActive = active === item.id;

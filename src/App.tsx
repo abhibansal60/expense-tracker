@@ -100,46 +100,44 @@ function App() {
     <AccessGate>
       <HouseholdUserGate>
         <ConvexProvider client={convex}>
-          <div className="app-shell">
-            <div className="mobile-frame" data-theme={theme}>
-              <div className="mobile-gradient" aria-hidden="true" />
-              <div className="mobile-scroll">
-                <div className="workspace-grid">
-                  <Header
-                    filtersActive={filtersVisible}
-                    onToggleFilters={toggleFilters}
-                    onOpenSettings={() => setSettingsOpen(true)}
-                    theme={theme}
-                    onToggleTheme={toggleTheme}
-                    activeView={activeView}
-                    onChangeView={handleViewChange}
-                  />
-                  <main className="screen" role="main">
-                    <AuthWrapper>
-                      <ExpenseTracker
-                        showFilters={filtersVisible}
-                        onToggleFilters={toggleFilters}
-                        preferences={preferences}
-                        activeView={activeView}
-                      />
-                    </AuthWrapper>
-                  </main>
+          <div className="min-h-screen bg-background font-sans antialiased selection:bg-primary/10 selection:text-primary">
+            <Header
+              filtersActive={filtersVisible}
+              onToggleFilters={toggleFilters}
+              onOpenSettings={() => setSettingsOpen(true)}
+              theme={theme}
+              onToggleTheme={toggleTheme}
+              activeView={activeView}
+              onChangeView={handleViewChange}
+            />
+
+            <main className="w-full px-4 md:px-8 pt-4 animate-in fade-in duration-500">
+              <AuthWrapper>
+                <ExpenseTracker
+                  showFilters={filtersVisible}
+                  onToggleFilters={toggleFilters}
+                  preferences={preferences}
+                  activeView={activeView}
+                />
+              </AuthWrapper>
+
+              <footer className="mt-20 border-t py-8 text-center text-sm text-muted-foreground">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                  <span>Guest workspace synced</span>
                 </div>
-                <footer className="version-footer" aria-label="Application version information">
-                  <div className="version-footer__item version-footer__status" aria-label="Workspace status">
-                    <span className="status-dot" aria-hidden="true" />
-                    <span>Guest workspace synced</span>
-                  </div>
-                  <span className="version-footer__separator" aria-hidden="true">•</span>
-                  <div className="version-footer__item" aria-label="Build metadata">
-                    {buildTimeLabel ? `Built ${buildTimeLabel}` : 'Build time unavailable'}
-                  </div>
-                  <span className="version-footer__separator" aria-hidden="true">•</span>
-                  <span className="version-footer__value" aria-label="Application version">v{__APP_VERSION__}</span>
-                </footer>
-              </div>
+                <div className="flex items-center justify-center gap-4 opacity-60">
+                  <span>{buildTimeLabel ? `Built ${buildTimeLabel}` : 'Build time unavailable'}</span>
+                  <span>•</span>
+                  <span>v{__APP_VERSION__}</span>
+                </div>
+              </footer>
+            </main>
+
+            <div className="md:hidden">
               <MobileNav active={activeView} onNavigate={handleViewChange} />
             </div>
+
             <SettingsDialog
               isOpen={settingsOpen}
               preferences={preferences}

@@ -8,7 +8,7 @@ import {
   ListChecks,
   PieChart,
   Menu,
-  UserCircle2,
+  LogOut,
 } from 'lucide-react';
 import { useHouseholdUser } from './HouseholdUserGate';
 import type { TrackerView } from './ExpenseTracker';
@@ -42,101 +42,134 @@ export function Header({
     .slice(0, 2)
     .join('');
 
-  const navItems: Array<{ id: TrackerView; label: string; helper: string; icon?: typeof PieChart }> = [
-    { id: 'overview', label: 'Overview', helper: 'Insights', icon: PieChart },
-    { id: 'activity', label: 'Activity', helper: 'Manual + timeline', icon: ListChecks },
-    { id: 'import', label: 'Bridge', helper: 'CSV workflows', icon: UploadCloud },
+  const navItems: Array<{ id: TrackerView; label: string; icon: typeof PieChart }> = [
+    { id: 'overview', label: 'Overview', icon: PieChart },
+    { id: 'activity', label: 'Activity', icon: ListChecks },
   ];
 
   return (
-    <header className="app-navbar" data-section="home">
-      <div className="app-navbar__brand" aria-label="Expense Tracker home">
-        <div className="app-navbar__avatar">{initials || 'ET'}</div>
-        <div className="app-navbar__title">Expense Tracker</div>
-      </div>
+    <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-16 items-center justify-between px-4 md:px-8">
+        <div className="flex items-center gap-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold shadow-sm ring-1 ring-primary/20">
+            {initials || 'ET'}
+          </div>
+        </div>
 
-      <div className="app-navbar__tabs" role="tablist" aria-label="Expense tracker views">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeView === item.id;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              className={`app-navbar__tab ${isActive ? 'app-navbar__tab--active' : ''}`}
-              onClick={() => onChangeView(item.id)}
-              role="tab"
-              aria-selected={isActive}
-            >
-              {Icon ? <Icon size={18} aria-hidden="true" /> : null}
-              <div className="app-navbar__tab-text">
+        <div
+          className="hidden md:flex items-center gap-1 p-1 bg-muted/50 rounded-full border border-border/50 w-auto min-w-fit"
+          style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap' }}
+        >
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeView === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onChangeView(item.id)}
+                className={`
+                  relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 ease-out
+                  ${isActive
+                    ? 'bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                  }
+                `}
+              >
+                <Icon size={16} className={`transition-colors ${isActive ? 'text-primary' : ''}`} />
                 <span>{item.label}</span>
-                <small>{item.helper}</small>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+              </button>
+            );
+          })}
+        </div>
 
-      <div className="app-navbar__actions">
-        <button className="pill-button icon-only" onClick={onToggleTheme} title="Toggle theme">
-          {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-        </button>
-        <div className="app-navbar__menu">
+        <div className="flex items-center gap-4">
           <button
-            className={`pill-button icon-only ${menuOpen ? 'pill-button--active' : ''}`}
-            onClick={() => setMenuOpen((open) => !open)}
-            aria-expanded={menuOpen}
-            aria-label="Open quick actions"
+            onClick={onToggleTheme}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+            title="Toggle theme"
           >
-            <Menu size={18} />
+            {theme === 'light' ? <Moon size={20} strokeWidth={2} /> : <Sun size={20} strokeWidth={2} />}
+            <span className="sr-only">Toggle theme</span>
           </button>
-          {menuOpen ? (
-            <div className="app-navbar__menu-panel" role="menu" aria-label="Account and quick actions">
-              <div className="app-navbar__menu-header">
-                <div className="app-navbar__avatar app-navbar__avatar--small">{initials || 'ET'}</div>
-                <div>
-                  <p className="app-navbar__eyebrow">Working as</p>
-                  <div className="app-navbar__menu-name">{displayName}</div>
+
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className={`
+                inline-flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-primary/20
+                ${menuOpen ? 'bg-accent text-accent-foreground' : ''}
+              `}
+              aria-expanded={menuOpen}
+              aria-label="Open user menu"
+            >
+              <Menu size={20} strokeWidth={2} />
+            </button>
+
+            {menuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setMenuOpen(false)}
+                />
+                <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border bg-popover p-1 text-popover-foreground shadow-xl animate-in fade-in-0 zoom-in-95">
+                  <div className="px-4 py-3 border-b border-border/50 mb-1">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Signed in as</p>
+                    <p className="text-sm font-semibold truncate text-foreground">{displayName}</p>
+                  </div>
+
+                  <div className="flex flex-col gap-1 p-1">
+                    <button
+                      onClick={() => {
+                        onChangeView('import');
+                        setMenuOpen(false);
+                      }}
+                      className={`
+                        relative flex w-full cursor-default select-none items-center rounded-lg px-3 py-2.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground
+                        ${activeView === 'import' ? 'bg-accent/50 text-accent-foreground' : ''}
+                      `}
+                    >
+                      <UploadCloud size={16} className="mr-3 opacity-70" />
+                      Bridge
+                    </button>
+                    <button
+                      onClick={() => {
+                        onToggleFilters();
+                        setMenuOpen(false);
+                      }}
+                      className={`
+                        relative flex w-full cursor-default select-none items-center rounded-lg px-3 py-2.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground
+                        ${filtersActive ? 'bg-accent/50 text-accent-foreground' : ''}
+                      `}
+                    >
+                      <Filter size={16} className="mr-3 opacity-70" />
+                      Filters
+                    </button>
+                    <button
+                      onClick={() => {
+                        onOpenSettings();
+                        setMenuOpen(false);
+                      }}
+                      className="relative flex w-full cursor-default select-none items-center rounded-lg px-3 py-2.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
+                    >
+                      <Settings size={16} className="mr-3 opacity-70" />
+                      Settings
+                    </button>
+                    <div className="my-1 h-px bg-border/50" />
+                    <button
+                      onClick={() => {
+                        clearUser();
+                        setMenuOpen(false);
+                      }}
+                      className="relative flex w-full cursor-default select-none items-center rounded-lg px-3 py-2.5 text-sm outline-none transition-colors hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive text-muted-foreground"
+                    >
+                      <LogOut size={16} className="mr-3 opacity-70" />
+                      Sign out
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="app-navbar__menu-actions">
-                <button
-                  className={`pill-button ${filtersActive ? 'pill-button--active' : ''}`}
-                  onClick={() => {
-                    onToggleFilters();
-                    setMenuOpen(false);
-                  }}
-                  role="menuitem"
-                >
-                  <Filter size={18} />
-                  Filters
-                </button>
-                <button
-                  className="pill-button"
-                  onClick={() => {
-                    onOpenSettings();
-                    setMenuOpen(false);
-                  }}
-                  role="menuitem"
-                >
-                  <Settings size={18} />
-                  Settings
-                </button>
-                <button
-                  className="pill-button"
-                  onClick={() => {
-                    clearUser();
-                    setMenuOpen(false);
-                  }}
-                  role="menuitem"
-                >
-                  <UserCircle2 size={18} />
-                  Switch profile
-                </button>
-              </div>
-            </div>
-          ) : null}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </header>
