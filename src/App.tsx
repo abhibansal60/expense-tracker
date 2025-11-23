@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ConvexProvider, ConvexReactClient } from 'convex/react';
 import { ExpenseTracker, type ExpenseTrackerPreferences, type TrackerView } from './components/ExpenseTracker';
 import { Header } from './components/Header';
+import { Sidebar } from './components/Sidebar';
 import { AuthWrapper } from './components/AuthWrapper';
 import { SettingsDialog } from './components/SettingsDialog';
 import { MobileNav } from './components/MobileNav';
@@ -47,6 +48,7 @@ const buildTimeLabel = (() => {
 function App() {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState<TrackerView>('overview');
   const [preferences, setPreferences] = useState<ExpenseTrackerPreferences>({
     compactMode: false,
@@ -100,13 +102,20 @@ function App() {
     <AccessGate>
       <HouseholdUserGate>
         <ConvexProvider client={convex}>
-          <div className="min-h-screen bg-background font-sans antialiased selection:bg-primary/10 selection:text-primary">
+          <div className="min-h-screen bg-background font-sans antialiased selection:bg-primary/10 selection:text-primary" style={{ overflowX: 'hidden' }}>
             <Header
+              theme={theme}
+              onToggleTheme={toggleTheme}
+              onOpenSidebar={() => setSidebarOpen(true)}
+              sidebarOpen={sidebarOpen}
+            />
+
+            <Sidebar
+              isOpen={sidebarOpen}
+              onClose={() => setSidebarOpen(false)}
               filtersActive={filtersVisible}
               onToggleFilters={toggleFilters}
               onOpenSettings={() => setSettingsOpen(true)}
-              theme={theme}
-              onToggleTheme={toggleTheme}
               activeView={activeView}
               onChangeView={handleViewChange}
             />

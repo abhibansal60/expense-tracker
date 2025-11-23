@@ -132,37 +132,6 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
         </div>
       )}
 
-      {summary.categoryBreakdown.length > 0 && (
-        <div className="category-breakdown">
-          <p className="eyebrow">Top categories</p>
-          <div className="category-list">
-            {summary.categoryBreakdown
-              .sort((a, b) => b.amount - a.amount)
-              .slice(0, 6)
-              .map((category) => {
-                const percentage = summary.totalExpenses
-                  ? (category.amount / summary.totalExpenses) * 100
-                  : 0;
-                return (
-                  <div key={category.categoryId} className="category-row">
-                    <div>
-                      <p>{category.categoryName}</p>
-                      <span>
-                        {formatCurrency(category.amount)}{' '}
-                        {'\u00B7'} {category.count} item
-                        {category.count !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                    <div className="category-meter">
-                      <div style={{ width: `${Math.min(percentage, 100)}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-        </div>
-      )}
-
       {!hasActivity && (
         <div className="empty-summary">
           <p>No data for {monthName}</p>
