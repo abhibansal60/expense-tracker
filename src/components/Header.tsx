@@ -49,20 +49,18 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 items-center justify-between px-4 md:px-8">
-        <div className="flex items-center gap-3 rounded-full border border-border/60 bg-muted/60 px-3 py-2 shadow-sm">
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 md:px-6">
+        <div className="flex items-center gap-3 rounded-full border border-border/60 bg-muted/70 px-3 py-2 shadow-sm">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 text-primary-foreground font-semibold shadow-lg ring-2 ring-primary/30">
             {initials || 'ET'}
           </div>
-          <div className="hidden sm:flex flex-col leading-tight justify-center">
+          <div className="hidden sm:flex flex-col justify-center leading-tight">
             <span className="text-sm font-bold tracking-tight text-foreground">Expense Tracker</span>
+            <span className="text-xs text-muted-foreground">Stay on top of every penny</span>
           </div>
         </div>
 
-        <div
-          className="hidden md:flex items-center gap-1 rounded-full border border-border/60 bg-muted/60 p-1 shadow-sm w-auto min-w-fit"
-          style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap' }}
-        >
+        <div className="hidden md:flex items-center gap-2 rounded-full border border-border/70 bg-background/80 p-1.5 shadow-sm">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeView === item.id;
@@ -71,16 +69,16 @@ export function Header({
                 key={item.id}
                 onClick={() => onChangeView(item.id)}
                 className={`
-                  group relative flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 ease-out
+                  group relative flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold tracking-tight transition-all duration-200
                   ${isActive
-                    ? 'bg-gradient-to-r from-primary/15 via-primary/10 to-primary/5 text-primary shadow-[0_10px_30px_-18px_rgba(59,130,246,0.6)] ring-1 ring-primary/25'
-                    : 'text-muted-foreground hover:-translate-y-0.5 hover:text-foreground hover:bg-background/60'
+                    ? 'bg-gradient-to-r from-primary/15 via-primary/10 to-primary/5 text-primary shadow-[0_10px_24px_-16px_rgba(59,130,246,0.6)] ring-1 ring-primary/25'
+                    : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
                   }
                 `}
                 aria-current={isActive ? 'page' : undefined}
               >
                 <span
-                  className={`absolute inset-0 rounded-full border border-transparent transition-colors ${isActive ? 'border-primary/30' : 'border-border/40 group-hover:border-border'
+                  className={`absolute inset-0 rounded-full border border-transparent transition-colors ${isActive ? 'border-primary/30' : 'border-border/60 group-hover:border-border/70'
                     }`}
                   aria-hidden
                 />
@@ -88,16 +86,16 @@ export function Header({
                   size={16}
                   className={`relative transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`}
                 />
-                <span className="relative">{item.label}</span>
+                <span className="relative leading-none">{item.label}</span>
               </button>
             );
           })}
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
             onClick={onToggleTheme}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-all hover:border-primary/30 hover:bg-muted/70 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             title="Toggle theme"
           >
             {theme === 'light' ? <Moon size={20} strokeWidth={2} /> : <Sun size={20} strokeWidth={2} />}
@@ -108,8 +106,8 @@ export function Header({
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className={`
-                inline-flex h-10 w-10 items-center justify-center rounded-full text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-primary/20
-                ${menuOpen ? 'bg-accent text-accent-foreground' : ''}
+                inline-flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-background/80 text-muted-foreground transition-all hover:border-primary/30 hover:bg-muted/70 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20
+                ${menuOpen ? 'border-primary/40 ring-2 ring-primary/20' : ''}
               `}
               aria-expanded={menuOpen}
               aria-label="Open user menu"
