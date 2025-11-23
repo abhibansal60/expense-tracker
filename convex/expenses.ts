@@ -171,6 +171,46 @@ export const getAvailableMonths = query({
   },
 });
 
+export const getMonthlyTrends = query({
+  args: {
+    limitMonths: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const expenses = await ctx.db.query("expenses").order("desc").take(500);
+    const monthTotals = new Map<string, { income: number; expense: number }>();
+
+    for (const expense of expenses) {
+      const monthKey = expense.date?.slice(0, 7);
+      if (!monthKey) continue;
+
+      const totals = monthTotals.get(monthKey) ?? { income: 0, expense: 0 };
+      const bucket = expense.type === "income" ? "income" : "expense";
+
+      monthTotals.set(monthKey, {
+        ...totals,
+        [bucket]: totals[bucket] + expense.amount,
+      });
+    }
+
+    const sortedMonths = Array.from(monthTotals.keys()).sort(
+      (a, b) => new Date(`${a}-01`).getTime() - new Date(`${b}-01`).getTime()
+    );
+
+    const limit = args.limitMonths && args.limitMonths > 0 ? args.limitMonths : undefined;
+    const limitedMonths = limit ? sortedMonths.slice(-limit) : sortedMonths;
+
+    return limitedMonths.map((month) => {
+      const totals = monthTotals.get(month) ?? { income: 0, expense: 0 };
+      return {
+        month,
+        income: totals.income,
+        expense: totals.expense,
+        net: totals.income - totals.expense,
+      };
+    });
+  },
+});
+
 // Query to return a normalized data set ready for CSV export
 export const exportExpenses = query({
   args: {},
