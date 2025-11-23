@@ -203,28 +203,6 @@ export function Header({
           </div>
         </div>
       </div>
-
-      <div className="hidden border-t border-border/70 bg-background/90 md:block">
-        <div className="mx-auto w-full max-w-6xl">
-          <nav className="primary-nav" aria-label="Primary navigation">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeView === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => onChangeView(item.id)}
-                  className={`primary-nav__item ${isActive ? 'primary-nav__item--active' : ''}`}
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-      </div>
     </header>
   );
 }
