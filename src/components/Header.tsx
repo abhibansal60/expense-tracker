@@ -60,38 +60,6 @@ export function Header({
           <span className="sr-only">Expense Tracker</span>
         </div>
 
-        <div className="hidden md:flex items-center gap-2 rounded-full border border-border/70 bg-background/80 p-1.5 shadow-sm">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeView === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => onChangeView(item.id)}
-                className={`
-                  group relative flex h-11 items-center gap-2 rounded-full px-4 text-sm font-semibold tracking-tight transition-all duration-200
-                  ${isActive
-                    ? 'bg-gradient-to-r from-primary/15 via-primary/10 to-primary/5 text-primary shadow-[0_10px_24px_-16px_rgba(59,130,246,0.6)] ring-1 ring-primary/25'
-                    : 'text-muted-foreground hover:bg-muted/70 hover:text-foreground'
-                  }
-                `}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                <span
-                  className={`absolute inset-0 rounded-full border border-transparent transition-colors ${isActive ? 'border-primary/30' : 'border-border/60 group-hover:border-border/70'
-                    }`}
-                  aria-hidden
-                />
-                <Icon
-                  size={16}
-                  className={`relative transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`}
-                />
-                <span className="relative leading-none">{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
         <div className="flex items-center gap-3">
           <button
             onClick={onToggleTheme}
@@ -180,6 +148,28 @@ export function Header({
               </>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="hidden border-t border-border/70 bg-background/90 md:block">
+        <div className="mx-auto w-full max-w-6xl">
+          <nav className="primary-nav" aria-label="Primary navigation">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeView === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onChangeView(item.id)}
+                  className={`primary-nav__item ${isActive ? 'primary-nav__item--active' : ''}`}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
         </div>
       </div>
     </header>
