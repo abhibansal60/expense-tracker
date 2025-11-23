@@ -111,7 +111,7 @@ function App() {
               onChangeView={handleViewChange}
             />
 
-            <main className="w-full px-4 md:px-8 pt-4 animate-in fade-in duration-500">
+            <main className="mx-auto w-full max-w-6xl px-4 pt-6 md:px-6 animate-in fade-in duration-500">
               <AuthWrapper>
                 <ExpenseTracker
                   showFilters={filtersVisible}
