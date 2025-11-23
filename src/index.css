@@ -2416,7 +2416,8 @@ code {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
 }
 
 .mobile-nav {
@@ -2444,7 +2445,7 @@ code {
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.2s ease,
     box-shadow 0.2s ease;
-  flex: 1 1 0;
+  flex: 0 0 auto;
   min-width: 140px;
 }
 
