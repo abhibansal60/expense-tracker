@@ -47,6 +47,38 @@ export function Header({
     { id: 'activity', label: 'Activity', icon: ListChecks },
   ];
 
+  const menuItems = [
+    {
+      id: 'import',
+      label: 'Bridge',
+      icon: UploadCloud,
+      action: () => onChangeView('import'),
+      isActive: activeView === 'import',
+    },
+    {
+      id: 'filters',
+      label: 'Filters',
+      icon: Filter,
+      action: onToggleFilters,
+      isActive: filtersActive,
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: Settings,
+      action: onOpenSettings,
+      isActive: false,
+    },
+    {
+      id: 'sign-out',
+      label: 'Sign out',
+      icon: LogOut,
+      action: clearUser,
+      isActive: false,
+      variant: 'destructive' as const,
+    },
+  ];
+
   return (
     <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 md:px-6">
@@ -89,61 +121,43 @@ export function Header({
                   className="fixed inset-0 z-40"
                   onClick={() => setMenuOpen(false)}
                 />
-                <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border bg-popover p-1 text-popover-foreground shadow-xl animate-in fade-in-0 zoom-in-95">
-                  <div className="px-4 py-3 border-b border-border/50 mb-1">
+                <div className="absolute right-0 top-full z-50 mt-3 w-72 max-w-[calc(100vw-1.5rem)] rounded-xl border bg-popover p-2 text-popover-foreground shadow-xl animate-in fade-in-0 zoom-in-95">
+                  <div className="mb-2 border-b border-border/50 px-4 py-3">
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Signed in as</p>
                     <p className="text-sm font-semibold truncate text-foreground">{displayName}</p>
                   </div>
 
-                  <div className="flex flex-col gap-1 p-1">
-                    <button
-                      onClick={() => {
-                        onChangeView('import');
-                        setMenuOpen(false);
-                      }}
-                      className={`
-                        relative flex w-full cursor-default select-none items-center rounded-lg px-3 py-2.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground
-                        ${activeView === 'import' ? 'bg-accent/50 text-accent-foreground' : ''}
-                      `}
+                  <nav aria-label="User menu">
+                    <ul
+                      className="user-menu__list"
                     >
-                      <UploadCloud size={16} className="mr-3 opacity-70" />
-                      Bridge
-                    </button>
-                    <button
-                      onClick={() => {
-                        onToggleFilters();
-                        setMenuOpen(false);
-                      }}
-                      className={`
-                        relative flex w-full cursor-default select-none items-center rounded-lg px-3 py-2.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground
-                        ${filtersActive ? 'bg-accent/50 text-accent-foreground' : ''}
-                      `}
-                    >
-                      <Filter size={16} className="mr-3 opacity-70" />
-                      Filters
-                    </button>
-                    <button
-                      onClick={() => {
-                        onOpenSettings();
-                        setMenuOpen(false);
-                      }}
-                      className="relative flex w-full cursor-default select-none items-center rounded-lg px-3 py-2.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground"
-                    >
-                      <Settings size={16} className="mr-3 opacity-70" />
-                      Settings
-                    </button>
-                    <div className="my-1 h-px bg-border/50" />
-                    <button
-                      onClick={() => {
-                        clearUser();
-                        setMenuOpen(false);
-                      }}
-                      className="relative flex w-full cursor-default select-none items-center rounded-lg px-3 py-2.5 text-sm outline-none transition-colors hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive text-muted-foreground"
-                    >
-                      <LogOut size={16} className="mr-3 opacity-70" />
-                      Sign out
-                    </button>
-                  </div>
+                      {menuItems.map((item) => {
+                        const Icon = item.icon;
+                        const isDestructive = item.variant === 'destructive';
+                        const isActive = item.isActive;
+                        return (
+                          <li key={item.id}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                item.action();
+                                setMenuOpen(false);
+                              }}
+                              className={`user-menu__item ${
+                                isActive ? 'user-menu__item--active' : ''
+                              } ${isDestructive ? 'user-menu__item--danger' : ''}`}
+                              aria-current={isActive ? 'true' : undefined}
+                            >
+                              <span className="user-menu__icon" aria-hidden>
+                                <Icon size={16} />
+                              </span>
+                              <span className="user-menu__label">{item.label}</span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </nav>
                 </div>
               </>
             )}

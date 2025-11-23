@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.1.2 - 2025-11-23
+- Restyled the header user menu to match the app’s pill-button look and keep options vertically aligned.
+- Refreshed the access and profile selection screens with the shared card layout and primary button styles.
+
 ## 0.1.1 - 2025-11-23
 - Added contributor guidance to enforce version bumps and changelog updates for user-facing changes.
 - Updated package metadata to version 0.1.1.

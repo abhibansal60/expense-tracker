@@ -861,6 +861,10 @@ code {
   display: flex;
 }
 
+.flex-col {
+  flex-direction: column;
+}
+
 .items-center {
   align-items: center;
 }
@@ -883,6 +887,10 @@ code {
 
 .space-x-4>*+* {
   margin-left: 16px;
+}
+
+.gap-1 {
+  gap: 4px;
 }
 
 .grid {
@@ -1322,6 +1330,177 @@ code {
 
 .pill-button--active {
   border-color: rgba(15, 23, 42, 0.12);
+}
+
+.user-menu__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-menu__item {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.user-menu__item:hover,
+.user-menu__item:focus-visible {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.user-menu__item--active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.12);
+}
+
+.user-menu__item--danger {
+  color: rgb(var(--ui-destructive));
+  border-color: rgb(var(--ui-destructive) / 0.4);
+  background: rgb(var(--ui-destructive) / 0.06);
+}
+
+.user-menu__item--danger:hover,
+.user-menu__item--danger:focus-visible {
+  background: rgb(var(--ui-destructive) / 0.12);
+  color: rgb(var(--ui-destructive));
+  border-color: rgb(var(--ui-destructive) / 0.6);
+}
+
+.user-menu__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background: var(--pill-bg);
+  color: var(--text-primary);
+}
+
+.user-menu__label {
+  text-align: left;
+  font-size: 14px;
+}
+
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--app-bg);
+  color: var(--text-primary);
+  padding: 32px 16px;
+}
+
+.auth-card {
+  width: min(100%, 480px);
+  background: var(--surface);
+  border-radius: 24px;
+  padding: 28px;
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-elevated);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-card--stacked {
+  gap: 20px;
+}
+
+.auth-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.auth-card__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.auth-card__subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.auth-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+  margin-top: 4px;
+}
+
+.auth-card__label {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.auth-card__error {
+  margin: 0;
+  color: rgb(var(--ui-destructive));
+  font-weight: 600;
+}
+
+.auth-card__options {
+  display: grid;
+  gap: 12px;
+}
+
+.auth-card__option {
+  width: 100%;
+  justify-content: space-between;
+  padding-inline: 16px;
+}
+
+.auth-card__option-label {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.auth-card__option-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.auth-card__footnote {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 :root[data-theme='dark'] .hero-actions .pill-button {
