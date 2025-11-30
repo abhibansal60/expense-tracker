@@ -98,24 +98,36 @@ export const getMonthlySummary = query({
 
     // Group by category
     const categoryTotals = new Map<string, { amount: number; count: number; categoryName: string }>();
+    const incomeCategoryTotals = new Map<string, { amount: number; count: number; categoryName: string }>();
     const dayTotals = new Map<string, { income: number; expense: number }>();
     const accountTotals = new Map<string, number>();
 
-    for (const expense of expenses.filter(e => e.type === "expense")) {
-      const category = await safeGetDocument(ctx, "categories", expense.category);
-      const categoryName = category?.name ?? "Unknown";
-      const current = categoryTotals.get(expense.category) ?? { amount: 0, count: 0, categoryName };
-      categoryTotals.set(expense.category, {
-        amount: current.amount + expense.amount,
-        count: current.count + 1,
-        categoryName,
-      });
-
-      const accountAmount = accountTotals.get(expense.account) ?? 0;
-      accountTotals.set(expense.account, accountAmount + expense.amount);
-    }
-
     for (const entry of expenses) {
+      if (entry.type === "expense") {
+        const category = await safeGetDocument(ctx, "categories", entry.category);
+        const categoryName = category?.name ?? "Unknown";
+        const current = categoryTotals.get(entry.category) ?? { amount: 0, count: 0, categoryName };
+        categoryTotals.set(entry.category, {
+          amount: current.amount + entry.amount,
+          count: current.count + 1,
+          categoryName,
+        });
+
+        const accountAmount = accountTotals.get(entry.account) ?? 0;
+        accountTotals.set(entry.account, accountAmount + entry.amount);
+      }
+
+      if (entry.type === "income") {
+        const category = await safeGetDocument(ctx, "categories", entry.category);
+        const categoryName = category?.name ?? "Unknown";
+        const current = incomeCategoryTotals.get(entry.category) ?? { amount: 0, count: 0, categoryName };
+        incomeCategoryTotals.set(entry.category, {
+          amount: current.amount + entry.amount,
+          count: current.count + 1,
+          categoryName,
+        });
+      }
+
       const key = entry.date;
       const totals = dayTotals.get(key) ?? { income: 0, expense: 0 };
       const bucket = entry.type === "income" ? "income" : "expense";
@@ -143,6 +155,10 @@ export const getMonthlySummary = query({
       expenseCount: expenses.filter(e => e.type === "expense").length,
       incomeCount: expenses.filter(e => e.type === "income").length,
       categoryBreakdown: Array.from(categoryTotals.entries()).map(([categoryId, data]) => ({
+        categoryId,
+        ...data,
+      })),
+      incomeCategoryBreakdown: Array.from(incomeCategoryTotals.entries()).map(([categoryId, data]) => ({
         categoryId,
         ...data,
       })),

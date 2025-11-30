@@ -39,9 +39,11 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
   });
   const hasActivity = summary.totalExpenses > 0 || summary.totalIncome > 0;
   const hasCategoryData = summary.categoryBreakdown.length > 0 && summary.totalExpenses > 0;
+  const hasIncomeCategoryData =
+    summary.incomeCategoryBreakdown.length > 0 && summary.totalIncome > 0;
   const hasTrendData = (monthlyTrends?.length ?? 0) > 0;
   const hasAccountData = summary.accountBreakdown.length > 0;
-  const showCharts = hasCategoryData || hasTrendData || hasAccountData;
+  const showCharts = hasCategoryData || hasIncomeCategoryData || hasTrendData || hasAccountData;
 
   return (
     <section className="card monthly-card" data-section="insights">
@@ -115,6 +117,19 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
               <CategoryPieChart data={summary.categoryBreakdown} total={summary.totalExpenses} />
             </div>
           )}
+          {hasIncomeCategoryData && (
+            <div className="chart-card">
+              <p className="eyebrow">Income mix</p>
+              <h3 className="chart-title">Where income comes from</h3>
+              <CategoryPieChart
+                data={summary.incomeCategoryBreakdown}
+                total={summary.totalIncome}
+                centerLabel="Income"
+                detailLabel="income"
+                emptyMessage="We'll chart income once you record payments for this month."
+              />
+            </div>
+          )}
           {hasTrendData && (
             <div className="chart-card">
               <p className="eyebrow">Income vs expenses</p>
@@ -147,9 +162,15 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
 function CategoryPieChart({
   data,
   total,
+  centerLabel = 'Spent',
+  detailLabel = 'spending',
+  emptyMessage = "We'll chart spending once you have category activity.",
 }: {
   data: Array<{ categoryId: string; amount: number; count: number; categoryName: string }>;
   total: number;
+  centerLabel?: string;
+  detailLabel?: string;
+  emptyMessage?: string;
 }) {
   const sortedData = useMemo(() => [...data].sort((a, b) => b.amount - a.amount), [data]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -169,7 +190,7 @@ function CategoryPieChart({
   const activePercentage = activeSlice && total > 0 ? (activeSlice.fraction * 100).toFixed(1) : '0.0';
 
   if (!sortedData.length || total <= 0) {
-    return <p className="panel-subtitle">We&apos;ll chart spending once you have category activity.</p>;
+    return <p className="panel-subtitle">{emptyMessage}</p>;
   }
 
   const radius = 42;
@@ -204,7 +225,7 @@ function CategoryPieChart({
           })}
         </svg>
         <div className="pie-center">
-          <span>Spent</span>
+          <span>{centerLabel}</span>
           <strong>{formatCurrency(total)}</strong>
         </div>
       </div>
@@ -242,7 +263,7 @@ function CategoryPieChart({
             <p className="pie-detail__value">{formatCurrency(activeSlice.amount)}</p>
           </div>
           <p className="pie-detail__meta">
-            {activePercentage}% of spending · {activeSlice.count} item{activeSlice.count === 1 ? '' : 's'}
+            {activePercentage}% of {detailLabel} · {activeSlice.count} item{activeSlice.count === 1 ? '' : 's'}
           </p>
         </div>
       )}
