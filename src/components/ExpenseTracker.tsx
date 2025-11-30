@@ -17,6 +17,23 @@ const getCurrentMonth = () => {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 };
 
+const getMonthDateRange = (month: string) => {
+  const [yearString, monthString] = month.split('-');
+  const year = Number(yearString);
+  const monthIndex = Number(monthString) - 1;
+
+  const startDate = new Date(year, monthIndex, 1);
+  const endDate = new Date(year, monthIndex + 1, 0);
+
+  const formatDate = (date: Date) =>
+    [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+
+  return {
+    startDate: formatDate(startDate),
+    endDate: formatDate(endDate),
+  };
+};
+
 export type ExpenseTrackerPreferences = {
   compactMode: boolean;
 };
@@ -87,8 +104,11 @@ export function ExpenseTracker({
   };
 
   const handleCategorySelect = ({ categoryId, type }: { categoryId: string; type: 'income' | 'expense' }) => {
+    const monthRange = getMonthDateRange(activeMonth);
+
     setActivityFilters({
       ...createDefaultFilters(),
+      ...monthRange,
       category: categoryId as Id<'categories'>,
       type,
     });
@@ -97,7 +117,7 @@ export function ExpenseTracker({
       onChangeView('activity');
     }
 
-    if (!showFilters) {
+    if (showFilters) {
       onToggleFilters();
     }
   };
