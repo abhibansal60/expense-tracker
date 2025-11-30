@@ -17,9 +17,10 @@ const formatShortDate = (value: string) =>
 interface MonthlySummaryProps {
   month: string; // Format: "2025-09"
   actions?: ReactNode;
+  onCategorySelect?: (selection: { categoryId: string; type: 'income' | 'expense' }) => void;
 }
 
-export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
+export function MonthlySummary({ month, actions, onCategorySelect }: MonthlySummaryProps) {
   const summary = useQuery(api.expenses.getMonthlySummary, { month });
   const monthlyTrends = useQuery(api.expenses.getMonthlyTrends, { limitMonths: 6 });
   const incomeItemsByCategory = useMemo(() => {
@@ -146,7 +147,13 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
             <div className="chart-card">
               <p className="eyebrow">Spending mix</p>
               <h3 className="chart-title">Categories this month</h3>
-              <CategoryPieChart data={categoryBreakdown} total={summary.totalExpenses} />
+              <CategoryPieChart
+                data={categoryBreakdown}
+                total={summary.totalExpenses}
+                onCategorySelect={(categoryId) =>
+                  onCategorySelect?.({ categoryId, type: 'expense' })
+                }
+              />
             </div>
           )}
           {hasIncomeCategoryData && (
@@ -160,6 +167,7 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
                 detailLabel="income"
                 itemsByCategory={incomeItemsByCategory}
                 emptyMessage="We'll chart income once you record payments for this month."
+                onCategorySelect={(categoryId) => onCategorySelect?.({ categoryId, type: 'income' })}
               />
             </div>
           )}
@@ -199,6 +207,7 @@ function CategoryPieChart({
   detailLabel = 'spending',
   emptyMessage = "We'll chart spending once you have category activity.",
   itemsByCategory,
+  onCategorySelect,
 }: {
   data: Array<{ categoryId: string; amount: number; count: number; categoryName: string }>;
   total: number;
@@ -206,6 +215,7 @@ function CategoryPieChart({
   detailLabel?: string;
   emptyMessage?: string;
   itemsByCategory?: Record<string, Array<{ id: string; description: string; amount: number; date: string; account: string }>>;
+  onCategorySelect?: (categoryId: string) => void;
 }) {
   const sortedData = useMemo(() => [...data].sort((a, b) => b.amount - a.amount), [data]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -279,6 +289,10 @@ function CategoryPieChart({
               onMouseEnter={() => setActiveCategory(slice.categoryId)}
               onFocus={() => setActiveCategory(slice.categoryId)}
               onBlur={() => setActiveCategory(null)}
+              onClick={() => {
+                setActiveCategory(slice.categoryId);
+                onCategorySelect?.(slice.categoryId);
+              }}
             >
               <span className="legend-swatch" style={{ background: palette[index % palette.length] }} aria-hidden="true" />
               <div className="pie-legend__text">

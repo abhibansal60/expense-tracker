@@ -6,29 +6,25 @@ import { Filter, Calendar, TrendingDown, TrendingUp, AlertTriangle, Edit, Trash2
 import { QueryErrorBoundary } from './QueryErrorBoundary';
 import { useHouseholdUser } from './HouseholdUserGate';
 import { ExpenseForm } from './ExpenseForm';
-
-type ExpenseFilters = {
-  category: '' | Id<'categories'>;
-  type: '' | 'income' | 'expense';
-  startDate: string;
-  endDate: string;
-};
+import { createDefaultFilters, type ExpenseFilters } from './expenseFilters';
 
 type ExpenseListItem = Doc<'expenses'> & {
   categoryDetails?: Doc<'categories'> | null;
   userDetails?: { name?: string | null; email?: string | null } | null;
 };
 
-interface ExpenseListProps {
+export interface ExpenseListProps {
   showFilters: boolean;
   onShowFiltersChange: (value: boolean) => void;
   compactMode?: boolean;
+  activeFilters?: ExpenseFilters;
+  onFiltersChange?: (filters: ExpenseFilters) => void;
 }
 
 export function ExpenseList(props: ExpenseListProps) {
   return (
     <QueryErrorBoundary
-      resetKeys={[props.showFilters, props.compactMode]}
+      resetKeys={[props.showFilters, props.compactMode, props.activeFilters]}
       fallback={({ resetErrorBoundary }) => <LegacyExpenseList {...props} onRetry={resetErrorBoundary} />}
     >
       <PaginatedExpenseList {...props} />
@@ -36,8 +32,14 @@ export function ExpenseList(props: ExpenseListProps) {
   );
 }
 
-function PaginatedExpenseList({ showFilters, onShowFiltersChange, compactMode }: ExpenseListProps) {
-  const { filters, setFilters, resetFilters } = useExpenseFilterState();
+function PaginatedExpenseList({
+  showFilters,
+  onShowFiltersChange,
+  compactMode,
+  activeFilters,
+  onFiltersChange,
+}: ExpenseListProps) {
+  const { filters, setFilters, resetFilters } = useExpenseFilterState(activeFilters, onFiltersChange);
   const categories = useQuery(api.categories.getCategories) ?? [];
   const { results: expenses, status, loadMore } = usePaginatedQuery(
     api.expenses.getExpenses,
@@ -102,8 +104,15 @@ interface LegacyExpenseListProps extends ExpenseListProps {
   onRetry: () => void;
 }
 
-function LegacyExpenseList({ showFilters, onShowFiltersChange, compactMode, onRetry }: LegacyExpenseListProps) {
-  const { filters, setFilters, resetFilters } = useExpenseFilterState();
+function LegacyExpenseList({
+  showFilters,
+  onShowFiltersChange,
+  compactMode,
+  activeFilters,
+  onFiltersChange,
+  onRetry,
+}: LegacyExpenseListProps) {
+  const { filters, setFilters, resetFilters } = useExpenseFilterState(activeFilters, onFiltersChange);
   const categories = useQuery(api.categories.getCategories) ?? [];
   const legacyExpenses = useQuery(api.expenses.listRecentExpenses, {
     limit: compactMode ? 25 : 50,
@@ -154,8 +163,24 @@ function LegacyExpenseList({ showFilters, onShowFiltersChange, compactMode, onRe
   );
 }
 
-function useExpenseFilterState() {
-  const [filters, setFilters] = useState<ExpenseFilters>(() => createDefaultFilters());
+function useExpenseFilterState(
+  controlledFilters?: ExpenseFilters,
+  onFiltersChange?: (filters: ExpenseFilters) => void
+) {
+  const [filtersState, setFiltersState] = useState<ExpenseFilters>(() => createDefaultFilters());
+  const filters = controlledFilters ?? filtersState;
+
+  const setFilters = useMemo(() => {
+    if (controlledFilters !== undefined && onFiltersChange) {
+      return (value: SetStateAction<ExpenseFilters>) => {
+        const nextFilters = typeof value === 'function' ? (value as (prev: ExpenseFilters) => ExpenseFilters)(filters) : value;
+        onFiltersChange(nextFilters);
+      };
+    }
+
+    return setFiltersState;
+  }, [controlledFilters, filters, onFiltersChange]);
+
   const resetFilters = () => setFilters(createDefaultFilters());
   return { filters, setFilters, resetFilters };
 }
@@ -389,15 +414,6 @@ function ExpenseFeed({
       )}
     </>
   );
-}
-
-function createDefaultFilters(): ExpenseFilters {
-  return {
-    category: '',
-    type: '',
-    startDate: '',
-    endDate: '',
-  };
 }
 
 const SOURCE_LABELS: Record<'manual' | 'monzo' | 'import', { label: string; className: string }> = {

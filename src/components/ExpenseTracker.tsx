@@ -9,6 +9,8 @@ import { api } from '../../convex/_generated/api';
 import { RecurringForm } from './RecurringForm';
 import { RecurringList } from './RecurringList';
 import { useHouseholdUser } from './HouseholdUserGate';
+import { createDefaultFilters, type ExpenseFilters } from './expenseFilters';
+import type { Id } from '../../convex/_generated/dataModel';
 
 const getCurrentMonth = () => {
   const now = new Date();
@@ -26,6 +28,7 @@ interface ExpenseTrackerProps {
   onToggleFilters: () => void;
   preferences: ExpenseTrackerPreferences;
   activeView: TrackerView;
+  onChangeView: (view: TrackerView) => void;
 }
 
 export function ExpenseTracker({
@@ -33,9 +36,11 @@ export function ExpenseTracker({
   onToggleFilters,
   preferences,
   activeView,
+  onChangeView,
 }: ExpenseTrackerProps) {
   const [activeSheet, setActiveSheet] = useState<'expense' | 'recurring' | null>(null);
   const [selectedMonth, setSelectedMonth] = useState('');
+  const [activityFilters, setActivityFilters] = useState<ExpenseFilters>(() => createDefaultFilters());
   const availableMonths = useQuery(api.expenses.getAvailableMonths) ?? [];
   const { user } = useHouseholdUser();
   const processRecurring = useMutation(api.recurring.processRecurringEntries);
@@ -81,6 +86,22 @@ export function ExpenseTracker({
     }
   };
 
+  const handleCategorySelect = ({ categoryId, type }: { categoryId: string; type: 'income' | 'expense' }) => {
+    setActivityFilters({
+      ...createDefaultFilters(),
+      category: categoryId as Id<'categories'>,
+      type,
+    });
+
+    if (activeView !== 'activity') {
+      onChangeView('activity');
+    }
+
+    if (!showFilters) {
+      onToggleFilters();
+    }
+  };
+
   const handleMonthSelect = (event: ChangeEvent<HTMLSelectElement>) => {
     setSelectedMonth(event.target.value);
   };
@@ -121,7 +142,9 @@ export function ExpenseTracker({
 
   return (
     <div className="screen-stack tracker-stack">
-      {activeView === 'overview' && <MonthlySummary month={activeMonth} actions={monthActions} />}
+      {activeView === 'overview' && (
+        <MonthlySummary month={activeMonth} actions={monthActions} onCategorySelect={handleCategorySelect} />
+      )}
 
       {activeView === 'activity' && (
         <div className="activity-layout">
@@ -157,6 +180,8 @@ export function ExpenseTracker({
               }
             }}
             compactMode={preferences.compactMode}
+            activeFilters={activityFilters}
+            onFiltersChange={setActivityFilters}
           />
         </div>
       )}
