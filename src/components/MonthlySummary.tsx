@@ -20,6 +20,25 @@ interface MonthlySummaryProps {
 export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
   const summary = useQuery(api.expenses.getMonthlySummary, { month });
   const monthlyTrends = useQuery(api.expenses.getMonthlyTrends, { limitMonths: 6 });
+  const incomeChartData = useMemo(() => {
+    const breakdown = summary?.incomeCategoryBreakdown ?? [];
+    if (breakdown.length > 0) {
+      return breakdown;
+    }
+
+    if (summary?.totalIncome && summary.totalIncome > 0) {
+      return [
+        {
+          categoryId: 'income-total',
+          amount: summary.totalIncome,
+          count: summary.incomeCount,
+          categoryName: 'Income',
+        },
+      ];
+    }
+
+    return [];
+  }, [summary]);
 
   if (!summary) {
     return (
@@ -38,11 +57,10 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
     year: 'numeric',
   });
   const categoryBreakdown = summary.categoryBreakdown ?? [];
-  const incomeCategoryBreakdown = summary.incomeCategoryBreakdown ?? [];
   const accountBreakdown = summary.accountBreakdown ?? [];
   const hasActivity = summary.totalExpenses > 0 || summary.totalIncome > 0;
   const hasCategoryData = categoryBreakdown.length > 0 && summary.totalExpenses > 0;
-  const hasIncomeCategoryData = incomeCategoryBreakdown.length > 0 && summary.totalIncome > 0;
+  const hasIncomeCategoryData = incomeChartData.length > 0 && summary.totalIncome > 0;
   const hasTrendData = (monthlyTrends?.length ?? 0) > 0;
   const hasAccountData = accountBreakdown.length > 0;
   const showCharts = hasCategoryData || hasIncomeCategoryData || hasTrendData || hasAccountData;
@@ -124,7 +142,7 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
               <p className="eyebrow">Income mix</p>
               <h3 className="chart-title">Where income comes from</h3>
               <CategoryPieChart
-                data={incomeCategoryBreakdown}
+                data={incomeChartData}
                 total={summary.totalIncome}
                 centerLabel="Income"
                 detailLabel="income"
