@@ -88,14 +88,6 @@ export const getMonthlySummary = query({
       )
       .collect();
 
-    const totalIncome = expenses
-      .filter(e => e.type === "income")
-      .reduce((sum, e) => sum + e.amount, 0);
-
-    const totalExpenses = expenses
-      .filter(e => e.type === "expense")
-      .reduce((sum, e) => sum + e.amount, 0);
-
     // Group by category
     const categoryTotals = new Map<string, { amount: number; count: number; categoryName: string }>();
     const incomeCategoryTotals = new Map<string, { amount: number; count: number; categoryName: string }>();
@@ -108,10 +100,19 @@ export const getMonthlySummary = query({
     >();
     const dayTotals = new Map<string, { income: number; expense: number }>();
     const accountTotals = new Map<string, number>();
+    let totalIncome = 0;
+    let totalExpenses = 0;
+    let incomeCount = 0;
+    let expenseCount = 0;
 
     for (const entry of expenses) {
+      const category = await safeGetDocument(ctx, "categories", entry.category);
+
+      if (isTransferEntry(entry, category)) {
+        continue;
+      }
+
       if (entry.type === "expense") {
-        const category = await safeGetDocument(ctx, "categories", entry.category);
         const categoryName = category?.name ?? "Unknown";
         const current = categoryTotals.get(entry.category) ?? { amount: 0, count: 0, categoryName };
         categoryTotals.set(entry.category, {
@@ -122,10 +123,11 @@ export const getMonthlySummary = query({
 
         const accountAmount = accountTotals.get(entry.account) ?? 0;
         accountTotals.set(entry.account, accountAmount + entry.amount);
+        totalExpenses += entry.amount;
+        expenseCount += 1;
       }
 
       if (entry.type === "income") {
-        const category = await safeGetDocument(ctx, "categories", entry.category);
         const sourceName = category?.name ?? entry.description ?? "Income";
         const sourceKey = `${sourceName}`.toLowerCase();
 
@@ -159,6 +161,8 @@ export const getMonthlySummary = query({
             },
           ],
         });
+        totalIncome += entry.amount;
+        incomeCount += 1;
       }
 
       const key = entry.date;
@@ -185,8 +189,8 @@ export const getMonthlySummary = query({
       totalIncome,
       totalExpenses,
       netAmount: totalIncome - totalExpenses,
-      expenseCount: expenses.filter(e => e.type === "expense").length,
-      incomeCount: expenses.filter(e => e.type === "income").length,
+      expenseCount,
+      incomeCount,
       categoryBreakdown: Array.from(categoryTotals.entries()).map(([categoryId, data]) => ({
         categoryId,
         ...data,
@@ -234,11 +238,26 @@ export const getMonthlyTrends = query({
   handler: async (ctx, args) => {
     const expenses = await ctx.db.query("expenses").order("desc").take(500);
     const monthTotals = new Map<string, { income: number; expense: number }>();
+    const categoryCache = new Map<Id<"categories">, Doc<"categories"> | null>();
+
+    const resolveCategory = async (id: Id<"categories">) => {
+      if (categoryCache.has(id)) {
+        return categoryCache.get(id)!;
+      }
+      const category = await safeGetDocument(ctx, "categories", id);
+      categoryCache.set(id, category);
+      return category;
+    };
 
     for (const expense of expenses) {
       const monthKey = expense.date?.slice(0, 7);
       // Validate format YYYY-MM
       if (!monthKey || !/^\d{4}-\d{2}$/.test(monthKey)) continue;
+
+      const category = await resolveCategory(expense.category);
+      if (isTransferEntry(expense, category)) {
+        continue;
+      }
 
       const totals = monthTotals.get(monthKey) ?? { income: 0, expense: 0 };
       const bucket = expense.type === "income" ? "income" : "expense";
@@ -598,6 +617,19 @@ async function hydrateExpenses(ctx: QueryCtx, expenses: Array<Doc<"expenses">>) 
       };
     })
   );
+}
+
+function isTransferEntry(entry: Doc<"expenses">, category?: Doc<"categories"> | null) {
+  const categoryName = category?.name ?? "";
+  const haystack = [
+    categoryName,
+    entry.description,
+    entry.account,
+    entry.originalCategory ?? "",
+    entry.merchant ?? "",
+  ].map((value) => value.toLowerCase());
+
+  return haystack.some((value) => value.includes("transfer"));
 }
 
 async function safeGetDocument<TableName extends TableNames>(
