@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.1.4 - 2025-11-30
+- Broke down income sources by name in the monthly summary so the income pie chart lists each contribution instead of a single total.
+
 ## 0.1.3 - 2025-11-30
 - Added an income category pie chart to the monthly overview so earnings sources are visualized alongside spending.
 
