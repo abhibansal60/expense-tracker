@@ -99,6 +99,13 @@ export const getMonthlySummary = query({
     // Group by category
     const categoryTotals = new Map<string, { amount: number; count: number; categoryName: string }>();
     const incomeCategoryTotals = new Map<string, { amount: number; count: number; categoryName: string }>();
+    const incomeTransactionsByCategory = new Map<
+      string,
+      {
+        categoryName: string;
+        items: Array<{ id: Id<"expenses">; description: string; amount: number; date: string; account: string }>;
+      }
+    >();
     const dayTotals = new Map<string, { income: number; expense: number }>();
     const accountTotals = new Map<string, number>();
 
@@ -132,6 +139,25 @@ export const getMonthlySummary = query({
           amount: current.amount + entry.amount,
           count: current.count + 1,
           categoryName: sourceName,
+        });
+
+        const transactionsForCategory = incomeTransactionsByCategory.get(sourceKey) ?? {
+          categoryName: sourceName,
+          items: [],
+        };
+
+        incomeTransactionsByCategory.set(sourceKey, {
+          ...transactionsForCategory,
+          items: [
+            ...transactionsForCategory.items,
+            {
+              id: entry._id,
+              description: entry.description,
+              amount: entry.amount,
+              date: entry.date,
+              account: entry.account,
+            },
+          ],
         });
       }
 
@@ -169,6 +195,13 @@ export const getMonthlySummary = query({
         categoryId,
         ...data,
       })),
+      incomeTransactionsByCategory: Array.from(incomeTransactionsByCategory.entries()).map(
+        ([categoryId, data]) => ({
+          categoryId,
+          categoryName: data.categoryName,
+          items: data.items.sort((a, b) => b.date.localeCompare(a.date)),
+        })
+      ),
       dailySeries,
       accountBreakdown: Array.from(accountTotals.entries()).map(([account, amount]) => ({
         account,
