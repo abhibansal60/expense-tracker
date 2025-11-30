@@ -5,9 +5,13 @@ const STORAGE_KEY = 'expense-tracker:access-hash';
 const ACCESS_CODE_HASH = import.meta.env.VITE_ACCESS_CODE_HASH;
 
 async function sha256Hex(input: string) {
+  if (typeof window === 'undefined' || !window.crypto?.subtle) {
+    throw new Error('Secure hashing is not available in this browser.');
+  }
+
   const encoder = new TextEncoder();
   const data = encoder.encode(input);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
   return Array.from(new Uint8Array(hashBuffer))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
@@ -51,6 +55,9 @@ export function AccessGate({ children }: { children: ReactNode }) {
       } else {
         setError('That access phrase is incorrect. Try again.');
       }
+    } catch (hashError) {
+      console.error('Unable to verify access phrase', hashError);
+      setError('We could not verify that passphrase in this browser. Try again or switch to a different one.');
     } finally {
       setSubmitting(false);
       setPassphrase('');
