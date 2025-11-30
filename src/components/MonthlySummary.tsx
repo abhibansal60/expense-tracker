@@ -11,6 +11,8 @@ const currencyFormatter = new Intl.NumberFormat('en-GB', {
 });
 
 const formatCurrency = (value: number) => currencyFormatter.format(value);
+const formatShortDate = (value: string) =>
+  new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
 interface MonthlySummaryProps {
   month: string; // Format: "2025-09"
@@ -20,6 +22,16 @@ interface MonthlySummaryProps {
 export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
   const summary = useQuery(api.expenses.getMonthlySummary, { month });
   const monthlyTrends = useQuery(api.expenses.getMonthlyTrends, { limitMonths: 6 });
+  const incomeItemsByCategory = useMemo(() => {
+    const groups = summary?.incomeTransactionsByCategory ?? [];
+    return groups.reduce<Record<string, Array<{ id: string; description: string; amount: number; date: string; account: string }>>>(
+      (acc, group) => {
+        acc[group.categoryId] = group.items;
+        return acc;
+      },
+      {}
+    );
+  }, [summary]);
   const incomeChartData = useMemo(() => {
     const breakdown = summary?.incomeCategoryBreakdown ?? [];
     if (breakdown.length > 0) {
@@ -146,6 +158,7 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
                 total={summary.totalIncome}
                 centerLabel="Income"
                 detailLabel="income"
+                itemsByCategory={incomeItemsByCategory}
                 emptyMessage="We'll chart income once you record payments for this month."
               />
             </div>
@@ -185,12 +198,14 @@ function CategoryPieChart({
   centerLabel = 'Spent',
   detailLabel = 'spending',
   emptyMessage = "We'll chart spending once you have category activity.",
+  itemsByCategory,
 }: {
   data: Array<{ categoryId: string; amount: number; count: number; categoryName: string }>;
   total: number;
   centerLabel?: string;
   detailLabel?: string;
   emptyMessage?: string;
+  itemsByCategory?: Record<string, Array<{ id: string; description: string; amount: number; date: string; account: string }>>;
 }) {
   const sortedData = useMemo(() => [...data].sort((a, b) => b.amount - a.amount), [data]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -208,6 +223,7 @@ function CategoryPieChart({
   const palette = ['#8b5cf6', '#22c55e', '#f97316', '#06b6d4', '#f43f5e', '#a855f7', '#10b981', '#eab308'];
   const activeSlice = slices.find((slice) => slice.categoryId === activeCategory) ?? slices[0];
   const activePercentage = activeSlice && total > 0 ? (activeSlice.fraction * 100).toFixed(1) : '0.0';
+  const itemsForActiveCategory = activeSlice ? itemsByCategory?.[activeSlice.categoryId] ?? [] : [];
 
   if (!sortedData.length || total <= 0) {
     return <p className="panel-subtitle">{emptyMessage}</p>;
@@ -285,6 +301,21 @@ function CategoryPieChart({
           <p className="pie-detail__meta">
             {activePercentage}% of {detailLabel} · {activeSlice.count} item{activeSlice.count === 1 ? '' : 's'}
           </p>
+          {itemsForActiveCategory.length > 0 && (
+            <div className="pie-detail__list" role="list" aria-label={`${activeSlice.categoryName} ${detailLabel} items`}>
+              {itemsForActiveCategory.map((item) => (
+                <div key={item.id} className="pie-detail__item" role="listitem">
+                  <div>
+                    <p className="pie-detail__item-title">{item.description}</p>
+                    <span className="pie-detail__item-meta">
+                      {formatShortDate(item.date)} · {item.account}
+                    </span>
+                  </div>
+                  <span className="pie-detail__item-amount">{formatCurrency(item.amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

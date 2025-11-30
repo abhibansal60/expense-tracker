@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.1.5 - 2025-11-30
+- Added an income item breakdown beneath the income mix chart so you can see each payment, account, and amount contributing to the total.
+
 ## 0.1.4 - 2025-11-30
 - Broke down income sources by name in the monthly summary so the income pie chart lists each contribution instead of a single total.
 
