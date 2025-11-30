@@ -2168,12 +2168,22 @@ code {
   border: 1px solid var(--border-soft);
 }
 
+.recurring-card--collapsed {
+  background: var(--surface);
+}
+
 .recurring-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 12px;
+}
+
+.recurring-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .recurring-list {
