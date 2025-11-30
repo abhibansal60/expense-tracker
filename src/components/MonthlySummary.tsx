@@ -37,12 +37,14 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
     month: 'long',
     year: 'numeric',
   });
+  const categoryBreakdown = summary.categoryBreakdown ?? [];
+  const incomeCategoryBreakdown = summary.incomeCategoryBreakdown ?? [];
+  const accountBreakdown = summary.accountBreakdown ?? [];
   const hasActivity = summary.totalExpenses > 0 || summary.totalIncome > 0;
-  const hasCategoryData = summary.categoryBreakdown.length > 0 && summary.totalExpenses > 0;
-  const hasIncomeCategoryData =
-    summary.incomeCategoryBreakdown.length > 0 && summary.totalIncome > 0;
+  const hasCategoryData = categoryBreakdown.length > 0 && summary.totalExpenses > 0;
+  const hasIncomeCategoryData = incomeCategoryBreakdown.length > 0 && summary.totalIncome > 0;
   const hasTrendData = (monthlyTrends?.length ?? 0) > 0;
-  const hasAccountData = summary.accountBreakdown.length > 0;
+  const hasAccountData = accountBreakdown.length > 0;
   const showCharts = hasCategoryData || hasIncomeCategoryData || hasTrendData || hasAccountData;
 
   return (
@@ -99,7 +101,7 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
         <div className="summary-card">
           <div>
             <p>Active categories</p>
-            <p className="summary-value accent">{summary.categoryBreakdown.length}</p>
+            <p className="summary-value accent">{categoryBreakdown.length}</p>
             <span className="summary-meta">Spending buckets</span>
           </div>
           <div className="summary-icon accent">
@@ -114,7 +116,7 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
             <div className="chart-card">
               <p className="eyebrow">Spending mix</p>
               <h3 className="chart-title">Categories this month</h3>
-              <CategoryPieChart data={summary.categoryBreakdown} total={summary.totalExpenses} />
+              <CategoryPieChart data={categoryBreakdown} total={summary.totalExpenses} />
             </div>
           )}
           {hasIncomeCategoryData && (
@@ -122,7 +124,7 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
               <p className="eyebrow">Income mix</p>
               <h3 className="chart-title">Where income comes from</h3>
               <CategoryPieChart
-                data={summary.incomeCategoryBreakdown}
+                data={incomeCategoryBreakdown}
                 total={summary.totalIncome}
                 centerLabel="Income"
                 detailLabel="income"
@@ -141,7 +143,7 @@ export function MonthlySummary({ month, actions }: MonthlySummaryProps) {
             <div className="chart-card">
               <p className="eyebrow">Accounts</p>
               <h3 className="chart-title">Where money goes</h3>
-              <AccountBreakdown data={summary.accountBreakdown} total={summary.totalExpenses} />
+              <AccountBreakdown data={accountBreakdown} total={summary.totalExpenses} />
             </div>
           )}
         </div>
