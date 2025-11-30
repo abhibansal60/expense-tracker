@@ -23,6 +23,8 @@ interface HouseholdUserContextValue {
 
 const HouseholdUserContext = createContext<HouseholdUserContextValue | undefined>(undefined);
 
+// Allow this shared hook to coexist with the provider component in the same module.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useHouseholdUser() {
   const context = useContext(HouseholdUserContext);
   if (!context) {

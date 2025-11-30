@@ -132,6 +132,7 @@ function App() {
                   onToggleFilters={toggleFilters}
                   preferences={preferences}
                   activeView={activeView}
+                  onChangeView={handleViewChange}
                 />
               </AuthWrapper>
 
