@@ -119,12 +119,19 @@ export const getMonthlySummary = query({
 
       if (entry.type === "income") {
         const category = await safeGetDocument(ctx, "categories", entry.category);
-        const categoryName = category?.name ?? "Unknown";
-        const current = incomeCategoryTotals.get(entry.category) ?? { amount: 0, count: 0, categoryName };
-        incomeCategoryTotals.set(entry.category, {
+        const sourceName = category?.name ?? entry.description ?? "Income";
+        const sourceKey = `${sourceName}`.toLowerCase();
+
+        const current = incomeCategoryTotals.get(sourceKey) ?? {
+          amount: 0,
+          count: 0,
+          categoryName: sourceName,
+        };
+
+        incomeCategoryTotals.set(sourceKey, {
           amount: current.amount + entry.amount,
           count: current.count + 1,
-          categoryName,
+          categoryName: sourceName,
         });
       }
 
