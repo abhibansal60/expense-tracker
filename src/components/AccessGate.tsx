@@ -1,21 +1,6 @@
 import { type FormEvent, type ReactNode, useEffect, useState } from 'react';
 import { Loader2, Lock } from 'lucide-react';
-
-const STORAGE_KEY = 'expense-tracker:access-hash';
-const ACCESS_CODE_HASH = import.meta.env.VITE_ACCESS_CODE_HASH;
-
-async function sha256Hex(input: string) {
-  if (typeof window === 'undefined' || !window.crypto?.subtle) {
-    throw new Error('Secure hashing is not available in this browser.');
-  }
-
-  const encoder = new TextEncoder();
-  const data = encoder.encode(input);
-  const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
+import { ACCESS_CODE_HASH, getAccessStorageKey, sha256Hex } from '../utils/access';
 
 export function AccessGate({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<'checking' | 'prompt' | 'granted'>('checking');
@@ -31,7 +16,7 @@ export function AccessGate({ children }: { children: ReactNode }) {
     if (typeof window === 'undefined') {
       return;
     }
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    const stored = window.localStorage.getItem(getAccessStorageKey());
     if (stored && stored === ACCESS_CODE_HASH) {
       setStatus('granted');
       return;
@@ -50,7 +35,7 @@ export function AccessGate({ children }: { children: ReactNode }) {
     try {
       const hashed = await sha256Hex(passphrase.trim());
       if (hashed === ACCESS_CODE_HASH) {
-        window.localStorage.setItem(STORAGE_KEY, hashed);
+        window.localStorage.setItem(getAccessStorageKey(), hashed);
         setStatus('granted');
       } else {
         setError('That access phrase is incorrect. Try again.');

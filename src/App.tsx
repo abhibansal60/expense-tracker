@@ -9,6 +9,7 @@ import { SettingsDialog } from './components/SettingsDialog';
 import { MobileNav } from './components/MobileNav';
 import { AccessGate } from './components/AccessGate';
 import { HouseholdUserGate } from './components/HouseholdUserGate';
+import { PrivacyScreen } from './components/PrivacyScreen';
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL!);
 const THEME_STORAGE_KEY = 'expense-tracker:theme-preference';
@@ -54,6 +55,7 @@ function App() {
   const [preferences, setPreferences] = useState<ExpenseTrackerPreferences>({
     compactMode: false,
   });
+  const [privacyLocked, setPrivacyLocked] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => getPreferredTheme());
   const [hasManualThemeChoice, setHasManualThemeChoice] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -99,6 +101,13 @@ function App() {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [hasManualThemeChoice]);
 
+  const handleActivatePrivacyLock = () => {
+    setPrivacyLocked(true);
+    setSidebarOpen(false);
+    setSettingsOpen(false);
+    setFiltersVisible(false);
+  };
+
   return (
     <AccessGate>
       <HouseholdUserGate>
@@ -109,6 +118,7 @@ function App() {
               onToggleTheme={toggleTheme}
               onOpenSidebar={() => setSidebarOpen(true)}
               sidebarOpen={sidebarOpen}
+              onActivatePrivacyLock={handleActivatePrivacyLock}
             />
 
             <div className="hidden md:block">
@@ -159,6 +169,8 @@ function App() {
               onUpdatePreferences={updatePreferences}
               onClose={() => setSettingsOpen(false)}
             />
+
+            {privacyLocked && <PrivacyScreen onUnlock={() => setPrivacyLocked(false)} />}
           </div>
         </ConvexProvider>
       </HouseholdUserGate>
