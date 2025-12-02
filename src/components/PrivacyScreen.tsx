@@ -64,7 +64,7 @@ export function PrivacyScreen({ onUnlock }: PrivacyScreenProps) {
           </span>
           <span className="privacy-chip ghost">
             <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
-            Auto-locks after 5 minutes idle
+            Auto-locks after 2 minutes idle
           </span>
           <span className="privacy-chip ghost">
             <RefreshCcw className="h-3.5 w-3.5" aria-hidden="true" />
@@ -94,7 +94,7 @@ export function PrivacyScreen({ onUnlock }: PrivacyScreenProps) {
               <Clock3 className="h-4 w-4" aria-hidden="true" />
               <div>
                 <p className="privacy-tip__title">Smart idle detection</p>
-                <p className="privacy-tip__text">We hide the screen after five minutes without activity or when you switch apps.</p>
+                <p className="privacy-tip__text">We hide the screen after two minutes without activity or when you switch apps.</p>
               </div>
             </div>
           </div>

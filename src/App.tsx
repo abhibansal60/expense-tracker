@@ -9,11 +9,12 @@ import { SettingsDialog } from './components/SettingsDialog';
 import { MobileNav } from './components/MobileNav';
 import { AccessGate } from './components/AccessGate';
 import { HouseholdUserGate } from './components/HouseholdUserGate';
-import { PrivacyScreen } from './components/PrivacyScreen';
+import { PrivacyProvider } from './components/PrivacyContext';
+import { PrivacyBanner } from './components/PrivacyBanner';
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL!);
 const THEME_STORAGE_KEY = 'expense-tracker:theme-preference';
-const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
+const INACTIVITY_TIMEOUT_MS = 2 * 60 * 1000;
 
 const getPreferredTheme = (): 'light' | 'dark' => {
   if (typeof window === 'undefined') {
@@ -168,66 +169,74 @@ function App() {
     <AccessGate>
       <HouseholdUserGate>
         <ConvexProvider client={convex}>
-          <div className="min-h-screen bg-background font-sans antialiased selection:bg-primary/10 selection:text-primary" style={{ overflowX: 'hidden' }}>
-            <Header
-              theme={theme}
-              onToggleTheme={toggleTheme}
-              onOpenSidebar={() => setSidebarOpen(true)}
-              sidebarOpen={sidebarOpen}
-              onActivatePrivacyLock={handleActivatePrivacyLock}
-            />
+          <PrivacyProvider locked={privacyLocked}>
+            <div className="min-h-screen bg-background font-sans antialiased selection:bg-primary/10 selection:text-primary" style={{ overflowX: 'hidden' }}>
+              <Header
+                theme={theme}
+                onToggleTheme={toggleTheme}
+                onOpenSidebar={() => setSidebarOpen(true)}
+                sidebarOpen={sidebarOpen}
+                onActivatePrivacyLock={handleActivatePrivacyLock}
+              />
 
-            <div className="hidden md:block">
-              <Navbar active={activeView} onNavigate={handleViewChange} />
-            </div>
+              <div className="hidden md:block">
+                <Navbar active={activeView} onNavigate={handleViewChange} />
+              </div>
 
-            <Sidebar
-              isOpen={sidebarOpen}
-              onClose={() => setSidebarOpen(false)}
-              filtersActive={filtersVisible}
-              onToggleFilters={toggleFilters}
-              onOpenSettings={() => setSettingsOpen(true)}
-              activeView={activeView}
-              onChangeView={handleViewChange}
-            />
-
-            <main className="mx-auto w-full max-w-6xl px-4 pt-6 md:px-6 animate-in fade-in duration-500">
-              <AuthWrapper>
-                <ExpenseTracker
-                  showFilters={filtersVisible}
-                  onToggleFilters={toggleFilters}
-                  preferences={preferences}
-                  activeView={activeView}
-                  onChangeView={handleViewChange}
+              <div className="px-4 md:px-6">
+                <PrivacyBanner
+                  locked={privacyLocked}
+                  onLock={handleActivatePrivacyLock}
+                  onUnlock={() => setPrivacyLocked(false)}
                 />
-              </AuthWrapper>
+              </div>
 
-              <footer className="mt-20 border-t py-8 text-center text-sm text-muted-foreground">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-                  <span>Guest workspace synced</span>
-                </div>
-                <div className="flex items-center justify-center gap-4 opacity-60">
-                  <span>{buildTimeLabel ? `Built ${buildTimeLabel}` : 'Build time unavailable'}</span>
-                  <span>•</span>
-                  <span>v{__APP_VERSION__}</span>
-                </div>
-              </footer>
-            </main>
+              <Sidebar
+                isOpen={sidebarOpen}
+                onClose={() => setSidebarOpen(false)}
+                filtersActive={filtersVisible}
+                onToggleFilters={toggleFilters}
+                onOpenSettings={() => setSettingsOpen(true)}
+                activeView={activeView}
+                onChangeView={handleViewChange}
+              />
 
-            <div className="md:hidden">
-              <MobileNav active={activeView} onNavigate={handleViewChange} />
+              <main className="mx-auto w-full max-w-6xl px-4 pt-6 md:px-6 animate-in fade-in duration-500">
+                <AuthWrapper>
+                  <ExpenseTracker
+                    showFilters={filtersVisible}
+                    onToggleFilters={toggleFilters}
+                    preferences={preferences}
+                    activeView={activeView}
+                    onChangeView={handleViewChange}
+                  />
+                </AuthWrapper>
+
+                <footer className="mt-20 border-t py-8 text-center text-sm text-muted-foreground">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <span className="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                    <span>Guest workspace synced</span>
+                  </div>
+                  <div className="flex items-center justify-center gap-4 opacity-60">
+                    <span>{buildTimeLabel ? `Built ${buildTimeLabel}` : 'Build time unavailable'}</span>
+                    <span>•</span>
+                    <span>v{__APP_VERSION__}</span>
+                  </div>
+                </footer>
+              </main>
+
+              <div className="md:hidden">
+                <MobileNav active={activeView} onNavigate={handleViewChange} />
+              </div>
+
+              <SettingsDialog
+                isOpen={settingsOpen}
+                preferences={preferences}
+                onUpdatePreferences={updatePreferences}
+                onClose={() => setSettingsOpen(false)}
+              />
             </div>
-
-            <SettingsDialog
-              isOpen={settingsOpen}
-              preferences={preferences}
-              onUpdatePreferences={updatePreferences}
-              onClose={() => setSettingsOpen(false)}
-            />
-
-            {privacyLocked && <PrivacyScreen onUnlock={() => setPrivacyLocked(false)} />}
-          </div>
+          </PrivacyProvider>
         </ConvexProvider>
       </HouseholdUserGate>
     </AccessGate>
