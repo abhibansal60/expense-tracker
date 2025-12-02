@@ -1,14 +1,11 @@
-import {
-  Sun,
-  Moon,
-  Menu,
-} from 'lucide-react';
+import { Sun, Moon, Menu, EyeOff } from 'lucide-react';
 
 interface HeaderProps {
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
   onOpenSidebar: () => void;
   sidebarOpen: boolean;
+  onActivatePrivacyLock: () => void;
 }
 
 export function Header({
@@ -16,6 +13,7 @@ export function Header({
   onToggleTheme,
   onOpenSidebar,
   sidebarOpen,
+  onActivatePrivacyLock,
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
@@ -27,6 +25,16 @@ export function Header({
         >
           {theme === 'light' ? <Moon size={20} strokeWidth={2} /> : <Sun size={20} strokeWidth={2} />}
           <span className="sr-only">Toggle theme</span>
+        </button>
+
+        <button
+          onClick={onActivatePrivacyLock}
+          className="inline-flex h-11 items-center gap-2 rounded-full border border-border/70 bg-background/80 px-4 text-muted-foreground transition-all hover:border-primary/30 hover:bg-muted/70 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+          title="Hide the screen"
+        >
+          <EyeOff size={20} strokeWidth={2} />
+          <span className="hidden sm:inline">Hide screen</span>
+          <span className="sr-only">Hide screen</span>
         </button>
 
         <button
