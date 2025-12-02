@@ -1701,6 +1701,120 @@ code {
   z-index: 50;
 }
 
+.privacy-banner {
+  margin: 12px auto 0;
+  max-width: 1200px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-items: center;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(14, 165, 233, 0.08));
+  border: 1px solid rgba(99, 102, 241, 0.18);
+  border-radius: 16px;
+  padding: 14px 18px;
+  box-shadow: 0 18px 40px rgba(5, 6, 17, 0.16);
+}
+
+.privacy-banner__meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.privacy-banner__icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
+  color: #4f46e5;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+:root[data-theme='dark'] .privacy-banner__icon {
+  background: rgba(255, 255, 255, 0.08);
+  color: #c7d2fe;
+}
+
+.privacy-banner__eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.privacy-banner__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.privacy-banner__helper {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.privacy-banner__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-self: end;
+}
+
+.privacy-banner__chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.privacy-banner__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.privacy-banner__input {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.privacy-banner__input input {
+  width: min(260px, 100%);
+}
+
+.privacy-banner__toggle {
+  align-self: flex-end;
+}
+
+@media (max-width: 640px) {
+  .privacy-banner {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .privacy-banner__controls {
+    align-items: stretch;
+  }
+
+  .privacy-banner__chips,
+  .privacy-banner__input,
+  .privacy-banner__toggle {
+    width: 100%;
+  }
+
+  .privacy-banner__form {
+    align-items: stretch;
+  }
+}
+
 .privacy-overlay {
   position: fixed;
   inset: 0;

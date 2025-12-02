@@ -7,6 +7,7 @@ import { QueryErrorBoundary } from './QueryErrorBoundary';
 import { useHouseholdUser } from './HouseholdUserGate';
 import { ExpenseForm } from './ExpenseForm';
 import { createDefaultFilters, type ExpenseFilters } from './expenseFilters';
+import { MaskedValue } from './MaskedValue';
 
 type ExpenseListItem = Doc<'expenses'> & {
   categoryDetails?: Doc<'categories'> | null;
@@ -359,7 +360,7 @@ function ExpenseFeed({
                   <div className="expense-row">
                     <p className="expense-title">{expense.description}</p>
                     <p className={`expense-amount ${expense.type === 'income' ? 'income' : 'expense'}`}>
-                      {formatAmount(expense.amount, expense.type)}
+                      <MaskedValue value={formatAmount(expense.amount, expense.type)} />
                     </p>
                   </div>
                   <div className="expense-meta">

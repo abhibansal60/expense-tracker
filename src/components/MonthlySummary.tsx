@@ -2,6 +2,8 @@ import { type ReactNode, useMemo, useState } from 'react';
 import { useQuery } from 'convex/react';
 import { TrendingUp, TrendingDown, Wallet, PieChart } from 'lucide-react';
 import { api } from '../../convex/_generated/api';
+import { usePrivacy } from './PrivacyContext';
+import { MaskedValue } from './MaskedValue';
 
 const currencyFormatter = new Intl.NumberFormat('en-GB', {
   style: 'currency',
@@ -93,7 +95,9 @@ export function MonthlySummary({ month, actions, onCategorySelect }: MonthlySumm
         <div className="summary-card">
           <div>
             <p>Total income</p>
-            <p className="summary-value positive">{formatCurrency(summary.totalIncome)}</p>
+            <p className="summary-value positive">
+              <MaskedValue value={formatCurrency(summary.totalIncome)} />
+            </p>
             <span className="summary-meta">
               {summary.incomeCount} transaction{summary.incomeCount !== 1 ? 's' : ''}
             </span>
@@ -106,7 +110,9 @@ export function MonthlySummary({ month, actions, onCategorySelect }: MonthlySumm
         <div className="summary-card">
           <div>
             <p>Total expenses</p>
-            <p className="summary-value negative">{formatCurrency(summary.totalExpenses)}</p>
+            <p className="summary-value negative">
+              <MaskedValue value={formatCurrency(summary.totalExpenses)} />
+            </p>
             <span className="summary-meta">
               {summary.expenseCount} transaction{summary.expenseCount !== 1 ? 's' : ''}
             </span>
@@ -120,7 +126,7 @@ export function MonthlySummary({ month, actions, onCategorySelect }: MonthlySumm
           <div>
             <p>Net position</p>
             <p className={`summary-value ${summary.netAmount >= 0 ? 'positive' : 'negative'}`}>
-              {formatCurrency(Math.abs(summary.netAmount))}
+              <MaskedValue value={formatCurrency(Math.abs(summary.netAmount))} />
             </p>
             <span className="summary-meta">{summary.netAmount >= 0 ? 'In surplus' : 'In deficit'}</span>
           </div>
@@ -217,6 +223,7 @@ function CategoryPieChart({
   itemsByCategory?: Record<string, Array<{ id: string; description: string; amount: number; date: string; account: string }>>;
   onCategorySelect?: (categoryId: string) => void;
 }) {
+  const { privacyLocked } = usePrivacy();
   const sortedData = useMemo(() => [...data].sort((a, b) => b.amount - a.amount), [data]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
@@ -265,14 +272,20 @@ function CategoryPieChart({
                 onMouseEnter={() => setActiveCategory(slice.categoryId)}
                 onFocus={() => setActiveCategory(slice.categoryId)}
                 tabIndex={0}
-                aria-label={`${slice.categoryName}: ${formatCurrency(slice.amount)} (${(slice.fraction * 100).toFixed(1)}%)`}
+                aria-label={
+                  privacyLocked
+                    ? `${slice.categoryName}: amount hidden`
+                    : `${slice.categoryName}: ${formatCurrency(slice.amount)} (${(slice.fraction * 100).toFixed(1)}%)`
+                }
               />
             );
           })}
         </svg>
         <div className="pie-center">
           <span>{centerLabel}</span>
-          <strong>{formatCurrency(total)}</strong>
+          <strong>
+            <MaskedValue value={formatCurrency(total)} />
+          </strong>
         </div>
       </div>
 
@@ -297,20 +310,22 @@ function CategoryPieChart({
               <span className="legend-swatch" style={{ background: palette[index % palette.length] }} aria-hidden="true" />
               <div className="pie-legend__text">
                 <p>{slice.categoryName}</p>
-                <span>
-                  {percentage.toFixed(1)}% · {formatCurrency(slice.amount)}
-                </span>
-              </div>
-            </button>
-          );
-        })}
+              <span>
+                  {percentage.toFixed(1)}% · <MaskedValue value={formatCurrency(slice.amount)} />
+              </span>
+            </div>
+          </button>
+        );
+      })}
       </div>
 
       {activeSlice && (
         <div className="pie-detail">
           <div>
             <p className="pie-detail__label">{activeSlice.categoryName}</p>
-            <p className="pie-detail__value">{formatCurrency(activeSlice.amount)}</p>
+            <p className="pie-detail__value">
+              <MaskedValue value={formatCurrency(activeSlice.amount)} />
+            </p>
           </div>
           <p className="pie-detail__meta">
             {activePercentage}% of {detailLabel} · {activeSlice.count} item{activeSlice.count === 1 ? '' : 's'}
@@ -325,7 +340,9 @@ function CategoryPieChart({
                       {formatShortDate(item.date)} · {item.account}
                     </span>
                   </div>
-                  <span className="pie-detail__item-amount">{formatCurrency(item.amount)}</span>
+                  <span className="pie-detail__item-amount">
+                    <MaskedValue value={formatCurrency(item.amount)} />
+                  </span>
                 </div>
               ))}
             </div>
@@ -341,6 +358,7 @@ function MonthlyComparisonChart({
 }: {
   data: Array<{ month: string; income: number; expense: number; net: number }>;
 }) {
+  const { privacyLocked } = usePrivacy();
   const [hoveredIndex, setHoveredIndex] = useState(Math.max(data.length - 1, 0));
 
   if (!data.length) {
@@ -379,7 +397,11 @@ function MonthlyComparisonChart({
               onMouseEnter={() => setHoveredIndex(index)}
               onFocus={() => setHoveredIndex(index)}
               tabIndex={0}
-              aria-label={`${formatMonthLong(point.month)}: Income ${formatCurrency(point.income)}, expenses ${formatCurrency(point.expense)}`}
+              aria-label={
+                privacyLocked
+                  ? `${formatMonthLong(point.month)}: amounts hidden`
+                  : `${formatMonthLong(point.month)}: Income ${formatCurrency(point.income)}, expenses ${formatCurrency(point.expense)}`
+              }
             >
               <rect
                 className="bar bar-expense"
@@ -414,11 +436,12 @@ function MonthlyComparisonChart({
         <div>
           <p className="pie-detail__label">{formatMonthLong(activePoint.month)}</p>
           <p className={`pie-detail__value ${activePoint.net >= 0 ? 'positive' : 'negative'}`}>
-            {formatCurrency(Math.abs(activePoint.net))}
+            <MaskedValue value={formatCurrency(Math.abs(activePoint.net))} />
           </p>
         </div>
         <p className="pie-detail__meta">
-          Income {formatCurrency(activePoint.income)} · Expenses {formatCurrency(activePoint.expense)}
+          Income <MaskedValue value={formatCurrency(activePoint.income)} /> · Expenses{' '}
+          <MaskedValue value={formatCurrency(activePoint.expense)} />
         </p>
       </div>
     </div>
@@ -442,15 +465,17 @@ function AccountBreakdown({
     <div className="account-chart">
       {sorted.map((slice) => {
         const percentage = total ? (slice.amount / total) * 100 : 0;
-        return (
-          <div key={slice.account} className="account-row">
-            <div>
-              <p>{slice.account}</p>
-              <span>{formatCurrency(slice.amount)}</span>
-            </div>
-            <div className="account-meter">
-              <div style={{ width: `${Math.min(percentage, 100)}%` }} />
-            </div>
+          return (
+            <div key={slice.account} className="account-row">
+              <div>
+                <p>{slice.account}</p>
+                <span>
+                  <MaskedValue value={formatCurrency(slice.amount)} />
+                </span>
+              </div>
+              <div className="account-meter">
+                <div style={{ width: `${Math.min(percentage, 100)}%` }} />
+              </div>
           </div>
         );
       })}

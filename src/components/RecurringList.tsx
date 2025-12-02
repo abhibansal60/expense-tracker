@@ -4,6 +4,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import type { Id } from '../../convex/_generated/dataModel';
 import { useHouseholdUser } from './HouseholdUserGate';
+import { MaskedValue } from './MaskedValue';
 
 const currencyFormatter = new Intl.NumberFormat('en-GB', {
   style: 'currency',
@@ -75,20 +76,20 @@ export function RecurringList() {
                       {entry.type}
                     </span>
                   </p>
-                  <p className="recurring-meta">
-                    {entry.type === 'income' ? 'Deposit to' : 'Charge from'} {entry.account} · {entry.categoryName}
-                  </p>
-                  <p className="recurring-meta">
-                    <CalendarClock className="inline h-4 w-4" aria-hidden="true" /> Next on {formatDate(entry.nextOccurrence)}
-                  </p>
-                </div>
-                <div className="recurring-actions">
-                  <strong className={entry.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}>
-                    {currencyFormatter.format(entry.amount)}
-                  </strong>
-                  <button
-                    type="button"
-                    className="pill-button icon-only"
+              <p className="recurring-meta">
+                {entry.type === 'income' ? 'Deposit to' : 'Charge from'} {entry.account} · {entry.categoryName}
+              </p>
+              <p className="recurring-meta">
+                <CalendarClock className="inline h-4 w-4" aria-hidden="true" /> Next on {formatDate(entry.nextOccurrence)}
+              </p>
+            </div>
+            <div className="recurring-actions">
+              <strong className={entry.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}>
+                <MaskedValue value={currencyFormatter.format(entry.amount)} />
+              </strong>
+              <button
+                type="button"
+                className="pill-button icon-only"
                     onClick={() => handleDelete(entry._id)}
                     aria-label={`Delete ${entry.description}`}
                   >
