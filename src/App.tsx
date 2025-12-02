@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ConvexProvider, ConvexReactClient } from 'convex/react';
 import { ExpenseTracker, type ExpenseTrackerPreferences, type TrackerView } from './components/ExpenseTracker';
 import { Header } from './components/Header';
@@ -13,6 +13,7 @@ import { PrivacyScreen } from './components/PrivacyScreen';
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL!);
 const THEME_STORAGE_KEY = 'expense-tracker:theme-preference';
+const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000;
 
 const getPreferredTheme = (): 'light' | 'dark' => {
   if (typeof window === 'undefined') {
@@ -55,7 +56,7 @@ function App() {
   const [preferences, setPreferences] = useState<ExpenseTrackerPreferences>({
     compactMode: false,
   });
-  const [privacyLocked, setPrivacyLocked] = useState(false);
+  const [privacyLocked, setPrivacyLocked] = useState(true);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => getPreferredTheme());
   const [hasManualThemeChoice, setHasManualThemeChoice] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -101,12 +102,67 @@ function App() {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [hasManualThemeChoice]);
 
-  const handleActivatePrivacyLock = () => {
+  const handleActivatePrivacyLock = useCallback(() => {
     setPrivacyLocked(true);
     setSidebarOpen(false);
     setSettingsOpen(false);
     setFiltersVisible(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    let inactivityTimer: number | undefined;
+
+    const resetInactivityTimer = () => {
+      if (privacyLocked) return;
+
+      if (inactivityTimer !== undefined) {
+        window.clearTimeout(inactivityTimer);
+      }
+
+      inactivityTimer = window.setTimeout(() => {
+        handleActivatePrivacyLock();
+      }, INACTIVITY_TIMEOUT_MS);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handleActivatePrivacyLock();
+        if (inactivityTimer !== undefined) {
+          window.clearTimeout(inactivityTimer);
+        }
+        return;
+      }
+
+      resetInactivityTimer();
+    };
+
+    const handleActivity = () => {
+      resetInactivityTimer();
+    };
+
+    const activityEvents: Array<[Window, keyof WindowEventMap]> = [
+      [window, 'pointermove'],
+      [window, 'keydown'],
+      [window, 'scroll'],
+      [window, 'touchstart'],
+    ];
+
+    activityEvents.forEach(([target, event]) => target.addEventListener(event, handleActivity));
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    resetInactivityTimer();
+
+    return () => {
+      if (inactivityTimer !== undefined) {
+        window.clearTimeout(inactivityTimer);
+      }
+
+      activityEvents.forEach(([target, event]) => target.removeEventListener(event, handleActivity));
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [handleActivatePrivacyLock, privacyLocked]);
 
   return (
     <AccessGate>
