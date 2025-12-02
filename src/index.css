@@ -1722,20 +1722,27 @@ code {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.14), transparent 40%),
-    radial-gradient(circle at 70% 80%, rgba(14, 165, 233, 0.12), transparent 35%),
-    rgba(5, 6, 17, 0.78);
-  backdrop-filter: blur(14px);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.12), transparent 40%),
+    radial-gradient(circle at 70% 80%, rgba(14, 165, 233, 0.1), transparent 35%),
+    rgba(5, 6, 17, 0.82);
+  backdrop-filter: blur(18px);
 }
 
 .privacy-panel {
-  width: min(640px, 100%);
-  background: var(--surface);
+  width: min(720px, 100%);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(241, 245, 249, 0.85));
   color: var(--text-primary);
   border-radius: 20px;
-  padding: 28px;
+  padding: 30px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 25px 60px rgba(3, 7, 18, 0.35);
+  box-shadow: 0 25px 70px rgba(3, 7, 18, 0.35);
+  backdrop-filter: blur(10px);
+}
+
+:root[data-theme='dark'] .privacy-panel {
+  background: linear-gradient(150deg, rgba(24, 24, 27, 0.9), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(99, 102, 241, 0.18);
 }
 
 .privacy-icon {
@@ -1747,6 +1754,11 @@ code {
   display: grid;
   place-items: center;
   margin-bottom: 18px;
+}
+
+:root[data-theme='dark'] .privacy-icon {
+  background: rgba(99, 102, 241, 0.16);
+  color: #a5b4fc;
 }
 
 .privacy-header {
@@ -1780,11 +1792,56 @@ code {
   font-weight: 600;
 }
 
+.privacy-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 6px;
+}
+
+.privacy-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #312e81;
+  font-weight: 600;
+  font-size: 13px;
+  border: 1px solid rgba(99, 102, 241, 0.12);
+}
+
+.privacy-chip.ghost {
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--text-muted);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+:root[data-theme='dark'] .privacy-chip {
+  background: rgba(99, 102, 241, 0.16);
+  color: #c7d2fe;
+  border-color: rgba(99, 102, 241, 0.28);
+}
+
+:root[data-theme='dark'] .privacy-chip.ghost {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
 .privacy-actions {
   margin-top: 18px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.privacy-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 14px 0 12px;
 }
 
 .privacy-note {
@@ -1796,6 +1853,10 @@ code {
   background: rgba(99, 102, 241, 0.08);
   color: var(--text-primary);
   font-weight: 600;
+}
+
+:root[data-theme='dark'] .privacy-note {
+  background: rgba(99, 102, 241, 0.12);
 }
 
 .privacy-form {
@@ -1810,12 +1871,55 @@ code {
   align-items: center;
 }
 
+.privacy-tips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.privacy-tip {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.privacy-tip__title {
+  font-weight: 700;
+  margin: 0;
+}
+
+.privacy-tip__text {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.privacy-helper {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+:root[data-theme='dark'] .privacy-tip {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
 @media (max-width: 640px) {
   .privacy-panel {
     padding: 22px;
   }
 
   .privacy-header {
+    flex-direction: column;
+  }
+
+  .privacy-meta {
     flex-direction: column;
   }
 
