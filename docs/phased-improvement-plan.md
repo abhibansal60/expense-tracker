@@ -9,7 +9,7 @@ This document tracks implementation of the previously proposed fixes and improve
   - Buttons expose `aria-current` and remain focus-visible when tabbed.
   - Manual lint run documents any baseline issues.
 - **Status:** ✅ Complete in this iteration.
-- **LLM judge self-review:** Navigation config is centralized and reused; focus-visible styles added; lint run recorded with baseline warnings (no new regressions). Desktop and mobile nav now expose the import/bridge view alongside overview and activity to keep parity with available screens.
+- **LLM judge self-review:** Navigation config is centralized and reused; focus-visible styles added; lint run recorded with baseline warnings (no new regressions). Desktop and mobile nav now expose the import/bridge view alongside overview and activity to keep parity with available screens. Icon typing tightened to use `LucideIcon` to prevent regressions when swapping icons during future iterations.
 
 ## Phase 2: Privacy lock and theme preference consolidation (UI)
 - **Scope:** Introduce shared hooks for inactivity lock and preferred theme persistence; expose lock state affordances in banners/navigation.
