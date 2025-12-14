@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.1.8 - 2025-12-13
+- Added a phased improvement plan document to track implementation progress and quality checks.
+- Unified navigation config for desktop and mobile views and improved focus-visible states for keyboard users.
+
 ## 0.1.5 - 2025-11-30
 - Added an income item breakdown beneath the income mix chart so you can see each payment, account, and amount contributing to the total.
 

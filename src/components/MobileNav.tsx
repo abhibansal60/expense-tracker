@@ -1,10 +1,5 @@
-import { PieChart, ListChecks } from 'lucide-react';
+import { NAV_ITEMS } from './navigationConfig';
 import type { TrackerView } from './ExpenseTracker';
-
-const NAV_ITEMS: Array<{ id: TrackerView; label: string; icon: typeof PieChart }> = [
-  { id: 'overview', label: 'Overview', icon: PieChart },
-  { id: 'activity', label: 'Activity', icon: ListChecks },
-];
 
 interface MobileNavProps {
   active: TrackerView;
@@ -24,6 +19,7 @@ export function MobileNav({ active, onNavigate }: MobileNavProps) {
             className={`mobile-nav__item ${isActive ? 'mobile-nav__item--active' : ''}`}
             onClick={() => onNavigate(item.id)}
             aria-current={isActive ? 'page' : undefined}
+            aria-label={`${item.label} view`}
           >
             <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
             <span>{item.label}</span>
