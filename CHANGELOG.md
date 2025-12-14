@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.1.9 - 2025-12-14
+- Added the bridge/import view to desktop and mobile navigation so all tracker views share the same labels and icons.
+- Recorded the completed phase-one accessibility scope in the phased improvement plan.
+
 ## 0.1.8 - 2025-12-13
 - Added a phased improvement plan document to track implementation progress and quality checks.
 - Unified navigation config for desktop and mobile views and improved focus-visible states for keyboard users.

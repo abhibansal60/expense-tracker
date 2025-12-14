@@ -3,13 +3,13 @@
 This document tracks implementation of the previously proposed fixes and improvements across the UI and backend. Each phase lists scope, acceptance checks, and self-review notes ("LLM judge") recorded after completing the work.
 
 ## Phase 1: Navigation accessibility and consistency (UI)
-- **Scope:** Unify navigation config for desktop/mobile shells, add clear aria labelling, and improve keyboard focus visibility.
+- **Scope:** Unify navigation config for desktop/mobile shells, add clear aria labelling, and improve keyboard focus visibility while keeping all tracker views reachable.
 - **Acceptance checks:**
   - Desktop and mobile navigation render from a shared source of truth with consistent labels/icons.
   - Buttons expose `aria-current` and remain focus-visible when tabbed.
   - Manual lint run documents any baseline issues.
 - **Status:** ✅ Complete in this iteration.
-- **LLM judge self-review:** Navigation config is centralized and reused; focus-visible styles added; lint run recorded with baseline warnings (no new regressions).
+- **LLM judge self-review:** Navigation config is centralized and reused; focus-visible styles added; lint run recorded with baseline warnings (no new regressions). Desktop and mobile nav now expose the import/bridge view alongside overview and activity to keep parity with available screens.
 
 ## Phase 2: Privacy lock and theme preference consolidation (UI)
 - **Scope:** Introduce shared hooks for inactivity lock and preferred theme persistence; expose lock state affordances in banners/navigation.
