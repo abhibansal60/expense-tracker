@@ -1,5 +1,44 @@
 # Expense Tracker
 
+## Start here: paste this to your agent
+
+```text
+Set up expense-tracker (https://github.com/abhibansal60/expense-tracker) for me
+and run a first local check. Use your shell and file tools; no agent plugin is required.
+1. If I do not already have a checkout, run
+   `git clone https://github.com/abhibansal60/expense-tracker.git expense-tracker`,
+   then `cd expense-tracker`. Otherwise use my existing checkout and preserve my changes.
+   Read AGENTS.md, any CLAUDE.md, README.md, package.json, and package-lock.json.
+2. Gather my setup with read-only commands: `node --version`, `npm --version`,
+   `git status --short --branch`, and `git remote -v`. Check for .env.local
+   without printing its contents. Report only which of VITE_CONVEX_URL and
+   VITE_ACCESS_CODE_HASH are set, never their values. This repo has no env example;
+   use README.md and the variable references in src/App.tsx, src/utils/access.ts,
+   and convex/auth.ts. Do not print secrets or inspect unrelated personal files.
+3. Use a supported Node version, such as Node 24 LTS, and npm 11.
+   If my tools are missing or incompatible, propose the install and ask before
+   changing my machine. The committed lockfile omits optional esbuild packages,
+   so `npm ci` currently fails. Run `npm install --package-lock=false` to install
+   without rewriting the lockfile. Do not repair dependencies without approval.
+4. Propose the local configuration and ask before writing .env.local, changing
+   any existing config, logging in, creating a Convex deployment, or writing backend data.
+   Explain whether we can use an existing development deployment or need a new one.
+   VITE_CONVEX_URL is required to run the app. VITE_ACCESS_CODE_HASH is optional;
+   explain the passphrase gate's limits before enabling it. Never put secrets in
+   VITE_* variables or source control. Google OAuth uses GOOGLE_CLIENT_ID and
+   GOOGLE_CLIENT_SECRET on the Convex backend, not in the browser; the current UI
+   uses a household profile picker rather than a Google sign-in screen.
+5. After approval, run `npx convex dev` for the chosen development setup in one
+   terminal. Use its deployment URL for VITE_CONVEX_URL in .env.local, then run
+   `npm run dev` in a second terminal. Never target production or deploy without approval.
+   If I decline configuration, continue with the build check and report the runtime limit.
+6. For the first useful task, run `npm run build` to type-check and build the app.
+   Report the exact command and result; a passing build does not verify backend access.
+   With an approved development setup, walk me through the household profile picker,
+   adding one clearly marked sample expense, and checking the monthly summary.
+   Ask before creating or deleting sample data. Report blockers without changing code.
+```
+
 A collaborative expense tracker for couples/housemates built with React, TypeScript, Vite, and Convex. The UI focuses on quick data entry, rich filtering, and monthly summaries, while Convex handles real-time sync, authentication, and storage.
 
 ## Why Convex is the right fit
